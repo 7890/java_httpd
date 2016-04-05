@@ -1,0 +1,6 @@
+?
+EOL but seems to work with java 1.7
+
+alternatively
+http://download.eclipse.org/jetty/stable-9/dist/jetty-distribution-9.3.8.v20160314.tar.gz
+Stable (Java 8+) 9.3.8.v20160314
