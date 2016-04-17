@@ -40,7 +40,7 @@ public class WebServer
 		{
 			for(int i=0;i<instance_count;i++)
 			{
-				System.out.println("\n\nstarting incance # "+i+" on port "+(port_range_start+i)+"\n");
+				System.out.println("\n\nstarting instance # "+i+" on port "+(port_range_start+i)+"\n");
 
 				Server server = new Server(port_range_start+i);
 				ContextHandler ch = new ContextHandler();
