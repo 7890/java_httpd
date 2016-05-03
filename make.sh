@@ -24,6 +24,8 @@ jetty_dist_name=jetty-distribution-9.2.10.v20150310
 
 jetty_tarball="$jetty_dist_name".tar.gz
 
+osm_renderer_build_dir=../java_osm_renderer/_build
+
 #========================================================================
 checkAvail()
 {
@@ -49,7 +51,7 @@ compile()
 	jetty_home="$build"/"$jetty_dist_name"
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`
 
-	$JAVAC -classpath "$build":"$jetty_libs" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java 
+	$JAVAC -classpath "$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java 
 }
 
 #========================================================================
@@ -60,7 +62,7 @@ run()
 	jetty_home="$build"/"$jetty_dist_name"
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`":"`echo $(ls -1 "$jetty_home"/lib/websocket/*.jar) | sed 's/ /:/g'`
 
-	java -classpath "$build":"$jetty_libs" WebServer
+	java -Xms3000M -Xmx3000M -classpath "$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
 
 }
 

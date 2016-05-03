@@ -1,3 +1,5 @@
+import util.*;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
@@ -40,7 +42,7 @@ public class WebServer
 		{
 			for(int i=0;i<instance_count;i++)
 			{
-				System.out.println("\n\nstarting instance # "+i+" on port "+(port_range_start+i)+"\n");
+				System.out.println("\n\nstarting instance # "+i+" of "+handler_classname+" on port "+(port_range_start+i)+", attaching to context "+context+"\n");
 
 				Server server = new Server(port_range_start+i);
 				ContextHandler ch = new ContextHandler();
