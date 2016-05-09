@@ -1,5 +1,7 @@
 import util.*;
 
+import java.util.Vector;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
@@ -19,10 +21,10 @@ public class WebServer
 	private String propertiesFileUri="WebServer.properties";
 
 	//===configurable parameters (here: default values)
-	public String handler_classname="TileInfoHandler"; ///////////
+	public Vector handlers=new Vector(); ///handlers.add("handlers.TileInfoHandler");
+	public Vector instance_count=new Vector();
+	public Vector context=new Vector();
 	public int port_range_start=8081;
-	public int instance_count=4;
-	public String context="/ti";
 	//===end configurable parameters
 
 //========================================================================
@@ -38,26 +40,46 @@ public class WebServer
 		{
 			System.err.println("could not load properties");
 		}
+
+		if( ! (handlers.size()==instance_count.size() && handlers.size()==context.size() ) )
+		{
+			System.err.println("properties invalid, token count doesn't match");
+			System.exit(1);
+		}
+
+		for(int k=0;k<handlers.size();k++)
+		{
+			System.err.println("handler: '"+handlers.get(k)+"' "+instance_count.get(k)+" "+context.get(k));
+		}
+
 		try
 		{
-			for(int i=0;i<instance_count;i++)
+			int port=port_range_start;
+
+			//for every handler
+			for(int h=0;h<handlers.size();h++)
 			{
-				System.out.println("\n\nstarting instance # "+i+" of "+handler_classname+" on port "+(port_range_start+i)+", attaching to context "+context+"\n");
+				//n instances
+				for(int i=0;i<  Integer.parseInt((String)instance_count.get(h))  ;i++)
+				{
+					System.out.println("\n\nstarting instance # "+i+" of "+handlers.get(h)+" on port "+port+", attaching to context "+context.get(h)+"\n");
 
-				Server server = new Server(port_range_start+i);
-				ContextHandler ch = new ContextHandler();
-				ch.setContextPath(context);
+					Server server = new Server(port);
+					ContextHandler ch = new ContextHandler();
+					ch.setContextPath((String)context.get(h));
 
-				//ch.setHandler(new TileInfoHandler());
-				Class<?> c = Class.forName(handler_classname);
-				Constructor<?> cons = c.getConstructor();
-				ch.setHandler((AbstractHandler)cons.newInstance());
+					//ch.setHandler(new TileInfoHandler());
+					Class<?> c = Class.forName((String)handlers.get(h));
+					Constructor<?> cons = c.getConstructor();
+					ch.setHandler((AbstractHandler)cons.newInstance());
 
-				HandlerCollection hc = new HandlerCollection();
-				hc.addHandler(ch);
-				server.setHandler(hc);
-				server.start();
-				///server.join();
+					HandlerCollection hc = new HandlerCollection();
+					hc.addHandler(ch);
+					server.setHandler(hc);
+					server.start();
+					///server.join();
+					port++;
+				}
 			}
 		}
 		catch(Exception e)
