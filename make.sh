@@ -51,7 +51,7 @@ compile()
 	jetty_home="$build"/"$jetty_dist_name"
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`
 
-	$JAVAC -classpath "$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java 
+	$JAVAC -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java 
 }
 
 #========================================================================
@@ -62,7 +62,7 @@ run()
 	jetty_home="$build"/"$jetty_dist_name"
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`":"`echo $(ls -1 "$jetty_home"/lib/websocket/*.jar) | sed 's/ /:/g'`
 
-	java -Xms3000M -Xmx3000M -classpath "$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
+	java -Xms500M -Xmx1000M -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
 
 }
 
