@@ -160,6 +160,20 @@ public class LProps
 						try{fields[i].setBoolean(configurable_object, Boolean.parseBoolean(props.getProperty(fname)));}
 						catch(Exception e){System.err.println(""+e);}
 					}
+					else if(ctype==Vector.class)
+					{
+//						System.err.println("found vector");
+						try
+						{
+							String tokens[]=props.getProperty(fname).split(",");
+							Vector v = (Vector)fields[i].get(configurable_object);
+							for(int k=0;k<tokens.length;k++)
+							{
+								v.add(tokens[k].trim());
+							}
+						}
+						catch(Exception e){System.err.println(""+e);}
+					}
 					///else if byte,short,long,char,double
 				}//end if found property
 			}//end for all fields
