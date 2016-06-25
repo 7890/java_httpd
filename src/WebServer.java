@@ -7,9 +7,21 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+//for https / ssl =========
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.http.HttpVersion;
+//=========================
+
 import java.lang.reflect.Constructor;
 
 //http://download.eclipse.org/jetty/9.3.7.v20160115/apidocs/org/eclipse/jetty/websocket/api/package-summary.html
+//https://www.eclipse.org/jetty/documentation/9.3.x/embedding-jetty.html
 
 //tb/160403
 
@@ -21,10 +33,13 @@ public class WebServer
 	private String propertiesFileUri="WebServer.properties";
 
 	//===configurable parameters (here: default values)
-	public Vector handlers=new Vector(); ///handlers.add("handlers.TileInfoHandler");
-	public Vector instance_count=new Vector();
-	public Vector context=new Vector();
-	public int port_range_start=8081;
+	public Vector handlers		=new Vector(); ///handlers.add("handlers.TileInfoHandler");
+	public Vector instance_count	=new Vector();
+	public Vector context		=new Vector();
+	public int port_range_start	=8081;
+	public int use_ssl		=0;
+	public String keystore_uri	="resources/keystore";
+	public String keystore_pass	="123456";
 	//===end configurable parameters
 
 //========================================================================
@@ -40,6 +55,15 @@ public class WebServer
 		{
 			System.err.println("could not load properties");
 		}
+/*
+		// HTTP Configuration
+		HttpConfiguration http_config = new HttpConfiguration();
+		http_config.setOutputBufferSize(32768);
+		http_config.setRequestHeaderSize(8192);
+		http_config.setResponseHeaderSize(8192);
+		http_config.setSendServerVersion(true);
+		http_config.setSendDateHeader(false);
+*/
 
 		if( ! (handlers.size()==instance_count.size() && handlers.size()==context.size() ) )
 		{
@@ -60,11 +84,39 @@ public class WebServer
 			for(int h=0;h<handlers.size();h++)
 			{
 				//n instances
-				for(int i=0;i<  Integer.parseInt((String)instance_count.get(h))  ;i++)
+				for(int i=0;i<Integer.parseInt((String)instance_count.get(h));i++)
 				{
-					System.out.println("\n\nstarting instance # "+i+" of "+handlers.get(h)+" on port "+port+", attaching to context "+context.get(h)+"\n");
+					Server server=null;
+					if(use_ssl==0) //http://
+					{
+						System.out.println("\n\nstarting instance # "+i+" of "+handlers.get(h)+" on port HTTP "+port+", attaching to context "+context.get(h)+"\n");
+						server = new Server(port);
+					}
+					else //https://
+					{
+						System.out.println("\n\nstarting instance # "+i+" of "+handlers.get(h)+" on port HTTPS "+port+", attaching to context "+context.get(h)+"\n");
+						server = new Server();
 
-					Server server = new Server(port);
+						// SSL Context Factory
+						SslContextFactory sslContextFactory = new SslContextFactory();
+
+						sslContextFactory.setKeyStorePath(keystore_uri);
+						sslContextFactory.setKeyStorePassword(keystore_pass);
+
+						// SSL HTTP Configuration
+						HttpConfiguration https_config = new HttpConfiguration();
+						https_config.addCustomizer(new SecureRequestCustomizer());
+
+						ServerConnector sslConnector = new ServerConnector(
+							server
+							,new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString())
+							,new HttpConnectionFactory(https_config)
+						);
+						sslConnector.setPort(port);
+
+						server.addConnector(sslConnector);
+					}
+
 					ContextHandler ch = new ContextHandler();
 					ch.setContextPath((String)context.get(h));
 
@@ -80,7 +132,7 @@ public class WebServer
 					///server.join();
 					port++;
 				}
-			}
+			}//end for every handler
 		}
 		catch(Exception e)
 		{
