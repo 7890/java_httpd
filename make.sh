@@ -18,6 +18,7 @@ jsource=1.6
 jtarget=1.6
 
 JAVAC="javac -source $jsource -target $jtarget -nowarn"
+JAVA="java -Xms500M -Xmx1000M "
 
 jetty_dist_name=jetty-distribution-9.2.10.v20150310
 #jetty_dist_name=jetty-distribution-9.3.8.v20160314
@@ -51,7 +52,8 @@ compile()
 	jetty_home="$build"/"$jetty_dist_name"
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`
 
-	$JAVAC -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java 
+#echo	$JAVAC -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java
+	$JAVAC -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java
 }
 
 #========================================================================
@@ -60,10 +62,21 @@ run()
 	echo "running WebServer"
 	echo "================="
 	jetty_home="$build"/"$jetty_dist_name"
-	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`":"`echo $(ls -1 "$jetty_home"/lib/websocket/*.jar) | sed 's/ /:/g'`
+#	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`":"`echo $(ls -1 "$jetty_home"/lib/websocket/*.jar) | sed 's/ /:/g'`
 
-	java -Xms500M -Xmx1000M -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
+	jlib="$jetty_home"/lib
+	jetty_libs=""
+	jetty_libs="${jetty_libs}:"
+	jetty_libs="${jetty_libs}:"${jlib}/jetty-http-9.2.10.v20150310.jar
+	jetty_libs="${jetty_libs}:"${jlib}/jetty-io-9.2.10.v20150310.jar
+	jetty_libs="${jetty_libs}:"${jlib}/jetty-server-9.2.10.v20150310.jar
+	jetty_libs="${jetty_libs}:"${jlib}/jetty-util-9.2.10.v20150310.jar
+	jetty_libs="${jetty_libs}:"${jlib}/servlet-api-3.1.jar
 
+#echo	$JAVA -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
+	$JAVA -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
+#	java -verbose:class ... >/tmp/out.txt 2>&1
+#	cat /tmp/out.txt | grep "\[Loaded" | grep "\.jar" | rev | cut -d"/" -f1 | rev | sort | uniq | cut -d"]" -f1 >/tmp/jars.txt
 }
 
 for tool in java javac jar javadoc; \
