@@ -121,10 +121,10 @@ public class UploadHandler extends AbstractHandler
 			String filename_store=randomString(20)+".file";
 
 			System.err.println("upload START: "+filename);
-			System.err.println("storing '"+filename+"' to '"+download_dir+"/"+filename_store +"'");
+			System.err.println("storing '"+filename+"' to '"+download_dir+File.separator+filename_store +"'");
 
 			InputStream is=request.getInputStream();
-			OutputStream os=new FileOutputStream(new File(download_dir+"/"+filename_store));
+			OutputStream os=new FileOutputStream(new File(download_dir+File.separator+filename_store));
 
 			///needs limit for total size
 
@@ -136,7 +136,7 @@ public class UploadHandler extends AbstractHandler
 			os.close();
 			is.close();
 
-			PrintWriter pw=new PrintWriter(new File(download_dir+"/"+filename_store+".name"));
+			PrintWriter pw=new PrintWriter(new File(download_dir+File.separator+filename_store+".name"));
 			pw.println(filename);
 			pw.close();
 
