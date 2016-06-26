@@ -110,12 +110,12 @@ pre
 
 #progress p.success
 {
-	background: #eee none 0 0 no-repeat;
+	background: #0f0 none 0 0 no-repeat;
 }
 
 #progress p.failed
 {
-	background: #f00 none 0 0 no-repeat;
+	background: #f55 none 0 0 no-repeat;
 }
 </style>
 </head>
@@ -142,6 +142,8 @@ pre
 <!-- ======================================================================= -->
 <script>
 /*filedrag.js - HTML5 File Drag & Drop demonstration, Featured on SitePoint.com, Developed by Craig Buckler (@craigbuckler) of OptimalWorks.net*/
+var glob_response;
+
 (function()
 {
 	// getElementById
@@ -200,34 +202,44 @@ pre
 			{
 				var pc = parseInt(100 - (e.loaded / e.total * 100));
 				progress.style.backgroundPosition = pc + "% 0";
-				if(e.loaded==e.total)
-				{
-//					console.log("loaded==total");
-				}
+				progress.innerHTML=file.name+": progress "+e.loaded+" / "+e.total+" bytes";
 			}, false);
 
 			//complete
 			xhr.upload.addEventListener("load", function(e)
 			{
 //				console.log("transfer complete");
+				progress.innerHTML=file.name+": upload finished ("+e.total+" bytes)";
 			}, false);
 
 			//failed
 			xhr.upload.addEventListener("error", function(e)
 			{
 //				console.log("error transfer");
+				progress.innerHTML=file.name+": upload failed!";
 			}, false);
 
 			// file received/failed
 			xhr.onreadystatechange = function(e)
 			{
-				if (xhr.readyState == 4)
+				if (xhr.readyState == xhr.DONE) //4
 				{
-					progress.className = (xhr.status == 200 ? "success" : "failure");
+					if(xhr.status == 200)
+					{
+						progress.className = "success";
+						//server sends back <response>....</response>
+						file_id_from_server=xhr.responseXML.firstChild.childNodes[0].nodeValue;
+						progress.innerHTML=progress.innerHTML+". id: "+file_id_from_server;
+					}
+					else
+					{
+						progress.className = "failed";
+					}
 				}
 			};
 
 			// start upload
+//			console.log("starting upload");
 			xhr.open("POST", $id("upload").action, true);
 			xhr.setRequestHeader("X_FILENAME", file.name);
 			xhr.send(file);
