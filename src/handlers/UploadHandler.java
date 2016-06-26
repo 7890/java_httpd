@@ -67,13 +67,13 @@ public class UploadHandler extends AbstractHandler
 	}
 
 //========================================================================
-	private void sendDummyXML(HttpServletResponse response) throws IOException
+	private void sendXMLResponse(HttpServletResponse response, String content) throws IOException
 	{
 		//https://bugzilla.mozilla.org/show_bug.cgi?id=884693
 		//write dummy xml to response to prevent error "no element found" in firefox
 		response.setHeader("Content-Type", "text/xml");
 		PrintWriter pw=new PrintWriter(response.getOutputStream());
-		pw.println("<root></root>");
+		pw.println("<response>"+content+"</response>");
 		pw.close();
 	}
 
@@ -116,9 +116,12 @@ public class UploadHandler extends AbstractHandler
 			if(!found_filename_header)
 			{
 				System.err.println("/!\\ could not parse file upload request: x_filename header not found.");
+				baseRequest.setHandled(true);
+				return;
 			}
 
-			String filename_store=randomString(20)+".file";
+			String random_id=randomString(20);
+			String filename_store=random_id+".file";
 
 			System.err.println("upload START: "+filename);
 			System.err.println("storing '"+filename+"' to '"+download_dir+File.separator+filename_store +"'");
@@ -140,7 +143,7 @@ public class UploadHandler extends AbstractHandler
 			pw.println(filename);
 			pw.close();
 
-			sendDummyXML(response);
+			sendXMLResponse(response,random_id);
 
 			System.err.println("upload DONE:  "+filename);
 		}
