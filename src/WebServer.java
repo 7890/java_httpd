@@ -36,6 +36,7 @@ public class WebServer
 	public Vector handlers		=new Vector(); ///handlers.add("handlers.TileInfoHandler");
 	public Vector instance_count	=new Vector();
 	public Vector context		=new Vector();
+	public int start_on_same_server	=0;
 	public int port_range_start	=8081;
 	public int use_ssl		=0;
 	public String keystore_uri	="resources/keystore";
@@ -46,6 +47,33 @@ public class WebServer
 	public static void main(String[] args) throws Exception
 	{
 		WebServer ws=new WebServer(args);
+	}
+
+//========================================================================
+	private Server getSslServer(int port)
+	{
+		Server server = new Server();
+
+		// SSL Context Factory
+		SslContextFactory sslContextFactory = new SslContextFactory();
+
+		sslContextFactory.setKeyStorePath(keystore_uri);
+		sslContextFactory.setKeyStorePassword(keystore_pass);
+
+		// SSL HTTP Configuration
+		HttpConfiguration https_config = new HttpConfiguration();
+		https_config.addCustomizer(new SecureRequestCustomizer());
+
+		ServerConnector sslConnector = new ServerConnector(
+			server
+			,new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString())
+			,new HttpConnectionFactory(https_config)
+		);
+		sslConnector.setPort(port);
+
+		server.addConnector(sslConnector);
+
+		return server;
 	}
 
 //========================================================================
@@ -65,23 +93,59 @@ public class WebServer
 
 		if(!loadProps(propertiesFileUri))
 		{
-			System.err.println("could not load properties");
+			System.err.println("/!\\ could not load properties");
 		}
-/*
-		// HTTP Configuration
-		HttpConfiguration http_config = new HttpConfiguration();
-		http_config.setOutputBufferSize(32768);
-		http_config.setRequestHeaderSize(8192);
-		http_config.setResponseHeaderSize(8192);
-		http_config.setSendServerVersion(true);
-		http_config.setSendDateHeader(false);
-*/
 
-		if( ! (handlers.size()==instance_count.size() && handlers.size()==context.size() ) )
+		//check if properties make sense
+		if( ! (handlers.size()==instance_count.size() && handlers.size()==context.size()) )
 		{
-			System.err.println("properties invalid, token count doesn't match");
+			System.err.println("/!\\ properties invalid: token count doesn't match");
 			System.exit(1);
 		}
+
+		//make sure contexts start with '/'
+		for(int h=0;h<handlers.size();h++)
+		{
+			if( ! ((String)context.get(h)).startsWith("/") )
+			{
+				System.err.println("/!\\ properties invalid: contexts must start with '/'");
+				System.exit(1);
+			}
+		}
+
+		//when all handlers should be started on the same server (port):
+		if(start_on_same_server==1)
+		{
+			//instance_count can't be > 1
+			System.out.println("/!\\ ignoring instance_count, fixed to 1 (start_on_same_server=1)");
+			for(int k=0;k<handlers.size();k++)
+			{
+				instance_count.set(k,"1");
+			}
+
+			//can't use the same context, contexts should not overlap
+			for(int h=0;h<handlers.size();h++)
+			{
+				String context1=(String)context.get(h);
+				for(int k=(h+1);k<handlers.size();k++)
+				{
+					String context2=(String)context.get(k);
+					if(context1.equals(context2))
+					{
+						System.err.println("/!\\ properties invalid: contexts must be unique (start_on_same_server=1)");
+						System.exit(1);
+					}
+					String tokens1[]=context1.split("/");
+					String tokens2[]=context2.split("/");
+					if(tokens1.length<2 || tokens2.length<2 || tokens1[1].equals(tokens2[1]))
+					{
+						System.err.println("/!\\ properties invalid: contexts can't overlap (start_on_same_server=1)");
+						System.err.println(context1+" "+context2);
+						System.exit(1);
+					}
+				}
+			}
+		}//end if(start_on_same_server==1)
 
 		for(int k=0;k<handlers.size();k++)
 		{
@@ -90,7 +154,25 @@ public class WebServer
 
 		try
 		{
+			Server server=null;
+			HandlerCollection handler_collection=null;
+
 			int port=port_range_start;
+
+			if(start_on_same_server==1)
+			{
+				if(use_ssl==0)
+				{
+					System.out.println("creating server on HTTP port "+port);
+					server = new Server(port);
+				}
+				else
+				{
+					System.out.println("creating server on HTTPS port "+port);
+					server = getSslServer(port);
+				}
+				handler_collection = new HandlerCollection();
+			}
 
 			//for every handler
 			for(int h=0;h<handlers.size();h++)
@@ -98,53 +180,46 @@ public class WebServer
 				//n instances
 				for(int i=0;i<Integer.parseInt((String)instance_count.get(h));i++)
 				{
-					Server server=null;
-					if(use_ssl==0) //http://
-					{
-						System.out.println("\n\nstarting instance # "+i+" of "+handlers.get(h)+" on port HTTP "+port+", attaching to context "+context.get(h)+"\n");
-						server = new Server(port);
-					}
-					else //https://
-					{
-						System.out.println("\n\nstarting instance # "+i+" of "+handlers.get(h)+" on port HTTPS "+port+", attaching to context "+context.get(h)+"\n");
-						server = new Server();
+					System.out.println("creating handler instance # "+(i+1)+" of "+handlers.get(h)+", context "+context.get(h));
 
-						// SSL Context Factory
-						SslContextFactory sslContextFactory = new SslContextFactory();
+					ContextHandler context_handler = new ContextHandler();
+					context_handler.setContextPath((String)context.get(h));
 
-						sslContextFactory.setKeyStorePath(keystore_uri);
-						sslContextFactory.setKeyStorePassword(keystore_pass);
-
-						// SSL HTTP Configuration
-						HttpConfiguration https_config = new HttpConfiguration();
-						https_config.addCustomizer(new SecureRequestCustomizer());
-
-						ServerConnector sslConnector = new ServerConnector(
-							server
-							,new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString())
-							,new HttpConnectionFactory(https_config)
-						);
-						sslConnector.setPort(port);
-
-						server.addConnector(sslConnector);
-					}
-
-					ContextHandler ch = new ContextHandler();
-					ch.setContextPath((String)context.get(h));
-
-					//ch.setHandler(new TileInfoHandler());
+					//context_handler.setHandler(new TileInfoHandler());
 					Class<?> c = Class.forName((String)handlers.get(h));
 					Constructor<?> cons = c.getConstructor();
-					ch.setHandler((AbstractHandler)cons.newInstance());
+					context_handler.setHandler((AbstractHandler)cons.newInstance());
 
-					HandlerCollection hc = new HandlerCollection();
-					hc.addHandler(ch);
-					server.setHandler(hc);
-					server.start();
-					///server.join();
-					port++;
-				}
+					if(start_on_same_server==1)
+					{
+						handler_collection.addHandler(context_handler);
+					}
+					else
+					{
+						if(use_ssl==0) //http://
+						{
+							System.out.println("creating server on HTTP port "+port+" for handler instance # "+(i+1)+" of "+handlers.get(h)+", context "+context.get(h));
+							server = new Server(port);
+						}
+						else //https://
+						{
+							System.out.println("creating server on HTTPS port "+port+" for handler instance # "+(i+1)+" of "+handlers.get(h)+", context "+context.get(h));
+							server = getSslServer(port);
+						}
+						server.setHandler(context_handler);
+						server.start();
+						///server.join();
+						port++;
+					}
+				}//end for n instances
 			}//end for every handler
+
+			if(start_on_same_server==1)
+			{
+				server.setHandler(handler_collection);
+				server.start();
+				server.join();
+			}
 		}
 		catch(Exception e)
 		{
