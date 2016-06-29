@@ -42,6 +42,7 @@ public class TestHandler extends AbstractHandler
 	private void printRequest(HttpServletRequest req) //throws IOException
 	{
 		System.out.println("Method: " + req.getMethod());
+		System.out.println("Context: " + req.getContextPath());
 		System.out.println("Path Info: " + req.getPathInfo());
 
 		//get headers
@@ -59,19 +60,6 @@ public class TestHandler extends AbstractHandler
 			String paramName = (String)params.nextElement();
 			System.out.println("Parameter: " + paramName + " = " + req.getParameter(paramName));
 		}
-		//System.out.println(extractPostRequestBody(req));
-	}
-
-//========================================================================
-	static String extractPostRequestBody(HttpServletRequest request) throws IOException
-	{
-		if ("POST".equalsIgnoreCase(request.getMethod()))
-		{
-			Scanner s = null;
-			s = new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A");
-			return s.hasNext() ? s.next() : "";
-		}
-		return "";
 	}
 
 //========================================================================
