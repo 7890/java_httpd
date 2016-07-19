@@ -8,6 +8,21 @@
 	//form_action="http://127.0.0.1:8081/";
 	//leaving empty is ok when this page was delivered through handler.UploadHandler (?upload_form)
 	form_action="";
+
+	var upload_counter=0;
+
+	// getElementById
+	function $id(id)
+	{
+		return document.getElementById(id);
+	}
+
+	function clearUploadHistory()
+	{
+		var o = $id("progress");
+		o.innerHTML="";
+		upload_counter=0;
+	}
 </script>
 <!-- ======================================================================= -->
 <style>
@@ -132,6 +147,9 @@ pre
 <br/><br/>
 <div id="filedrag">or drop files here</div>
 </div>
+<center>
+<input type="button" id="clear" name="clear" value="clear upload history" onclick="clearUploadHistory();"/>
+</center>
 <div id="progress"></div>
 </fieldset>
 </form>
@@ -144,12 +162,6 @@ pre
 /*filedrag.js - HTML5 File Drag & Drop demonstration, Featured on SitePoint.com, Developed by Craig Buckler (@craigbuckler) of OptimalWorks.net*/
 (function()
 {
-	// getElementById
-	function $id(id)
-	{
-		return document.getElementById(id);
-	}
-
 	// output information
 	function output(msg)
 	{
@@ -188,33 +200,40 @@ pre
 ///		if (xhr.upload && file.type == "image/png" && file.size <= $id("MAX_FILE_SIZE").value) {
 		if (xhr.upload)
 		{
+			upload_counter++;
+			var counter=upload_counter;
+
 			// create progress bar
 			var o = $id("progress");
 			//var progress = o.appendChild(document.createElement("p"));
 			//newest progress bar on top
 			var progress = o.insertBefore(document.createElement("p"),o.childNodes[0]);
-			progress.appendChild(document.createTextNode(file.name));
+			progress.appendChild(document.createTextNode(counter+') '+file.name));
 
 			// progress bar
 			xhr.upload.addEventListener("progress", function(e)
 			{
 				var pc = parseInt(100 - (e.loaded / e.total * 100));
 				progress.style.backgroundPosition = pc + "% 0";
-				progress.innerHTML=file.name+": progress "+e.loaded+" / "+e.total+" bytes";
+				progress.innerHTML=counter+') '+file.name+"<br/>status: progress "+e.loaded+" / "+e.total+" bytes";
+				if(e.loaded==e.total)
+				{
+					progress.innerHTML=counter+') '+file.name+"<br/>status: upload finished ("+e.total+"bytes). server processing...";
+				}
 			}, false);
 
 			//complete
 			xhr.upload.addEventListener("load", function(e)
 			{
 //				console.log("transfer complete");
-				progress.innerHTML=file.name+": upload finished ("+e.total+" bytes)";
+				progress.innerHTML=counter+') '+file.name+"<br/>status: done. ("+e.total+" bytes)";
 			}, false);
 
 			//failed
 			xhr.upload.addEventListener("error", function(e)
 			{
 //				console.log("error transfer");
-				progress.innerHTML=file.name+": upload failed!";
+				progress.innerHTML=file.name+"<br/>status: upload failed!";
 			}, false);
 
 			// file received/failed
@@ -227,7 +246,7 @@ pre
 						progress.className = "success";
 						//server sends back <response>....</response>
 						file_id_from_server=xhr.responseXML.firstChild.childNodes[0].nodeValue;
-						progress.innerHTML=progress.innerHTML+". id: "+file_id_from_server;
+						progress.innerHTML=progress.innerHTML+" id: "+file_id_from_server;
 					}
 					else
 					{
