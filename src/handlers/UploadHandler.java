@@ -1,5 +1,6 @@
 package handlers;
 import util.*;
+import interfaces.*;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -23,6 +24,8 @@ import java.security.SecureRandom;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import java.lang.reflect.Constructor;
+
 //tb/1606
 //all-in-one upload html form is included in this handler
 //http://localhost:8081/?upload_form
@@ -40,10 +43,40 @@ public class UploadHandler extends AbstractHandler
 	public String Access_Control_Allow_Origin	="*";
 	//public String Access-Control-Allow-Origin	="null"; //html loaded from anywhere, server running on localhost
 	public String Access_Control_Allow_Headers	="content-type,x_filename";
+
+	public boolean post_upload_hook_enabled		=false;
+	public String post_upload_hook			="hooks.PostUploadShellHook";
 	//===end configurable parameters
 
 	private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	private static SecureRandom rnd = new SecureRandom();
+
+	private PostUpload post;
+
+//========================================================================
+	public UploadHandler()
+	{
+		if(!LProps.load(propertiesFileUri,this))
+		{
+			System.err.println("/!\\ could not load properties");
+		}
+
+		if(post_upload_hook_enabled)
+		{
+			try
+			{
+				System.err.println("loading PostUpload class");
+				Class<?> c = Class.forName(post_upload_hook);
+				Constructor<?> cons = c.getConstructor();
+				post=(PostUpload)cons.newInstance();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				System.exit(1);
+			}
+		}
+	}
 
 //http://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-numeric-string
 //========================================================================
@@ -55,15 +88,6 @@ public class UploadHandler extends AbstractHandler
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		}
 		return sb.toString();
-	}
-
-//========================================================================
-	public UploadHandler()
-	{
-		if(!LProps.load(propertiesFileUri,this))
-		{
-			System.err.println("/!\\ could not load properties");
-		}
 	}
 
 //========================================================================
@@ -142,6 +166,21 @@ public class UploadHandler extends AbstractHandler
 			PrintWriter pw=new PrintWriter(new File(download_dir+File.separator+filename_store+".name"));
 			pw.println(filename);
 			pw.close();
+
+			if(post_upload_hook_enabled)
+			{
+				try
+				{
+					//post upload hook
+					String result=post.postUploadProcess(new File(download_dir+File.separator+filename_store), filename);
+					System.out.println("hook return: "+result);
+				}
+				catch(Exception e)
+				{
+					///
+					e.printStackTrace();
+				}
+			}
 
 			sendXMLResponse(response,random_id);
 
