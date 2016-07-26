@@ -41,9 +41,24 @@ public class TestHandler extends AbstractHandler
 //========================================================================
 	private void printRequest(HttpServletRequest req) //throws IOException
 	{
-		System.out.println("Method: " + req.getMethod());
-		System.out.println("Context: " + req.getContextPath());
-		System.out.println("Path Info: " + req.getPathInfo());
+		//from snoop servlet
+		System.out.println("Protocol: " + req.getProtocol());
+		System.out.println("Scheme: " + req.getScheme());
+		System.out.println("Server Name: " + HTMLfilter(req.getServerName()));
+		System.out.println("Server Port: " + req.getServerPort());
+		System.out.println("Remote Addr: " + req.getRemoteAddr());
+		System.out.println("Remote Host: " + req.getRemoteHost());
+		System.out.println("Character Encoding: " + HTMLfilter(req.getCharacterEncoding()));
+		System.out.println("Content Length: " + req.getContentLength());
+		System.out.println("Content Type: "+ HTMLfilter(req.getContentType()));
+		System.out.println("Locale: "+ HTMLfilter(req.getLocale().toString()));
+
+		System.out.println("HTTP Method: " + req.getMethod());
+		System.out.println("Request URI: " + req.getRequestURI());
+		System.out.println("Context Path: " + req.getContextPath());
+		System.out.println("Path Info: " + HTMLfilter(req.getPathInfo()));
+		System.out.println("Query String: " + HTMLfilter(req.getQueryString()));
+		System.out.println("Request Is Secure: " + req.isSecure());
 
 		//get headers
 		Enumeration headerNames = req.getHeaderNames();
@@ -60,7 +75,7 @@ public class TestHandler extends AbstractHandler
 			String paramName = (String)params.nextElement();
 			System.out.println("Parameter: " + paramName + " = " + req.getParameter(paramName));
 		}
-	}
+	}//end printRequest()
 
 //========================================================================
 	public void handle(String target,
@@ -70,6 +85,47 @@ public class TestHandler extends AbstractHandler
 	{
 		printRequest(request);
 		baseRequest.setHandled(true);
+	}
+
+/**
+* Filter the specified message string for characters that are sensitive
+* in HTML.  This avoids potential attacks caused by including JavaScript
+* codes in the request URL that is often reported in error messages.
+*
+* @param message The message string to be filtered
+*/
+//========================================================================
+	public static String HTMLfilter(String message)
+	{
+		if (message == null)
+		{
+			return (null);
+		}
+
+		char content[] = new char[message.length()];
+		message.getChars(0, message.length(), content, 0);
+		StringBuffer result = new StringBuffer(content.length + 50);
+		for (int i = 0; i < content.length; i++)
+		{
+			switch (content[i])
+			{
+				case '<':
+					result.append("<");
+					break;
+				case '>':
+					result.append(">");
+					break;
+				case '&':
+					result.append("&");
+					break;
+				case '"':
+					result.append("\"");
+					break;
+				default:
+					result.append(content[i]);
+			}
+		}
+		return (result.toString());
 	}
 }//end class TestHandler
 //EOF
