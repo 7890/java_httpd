@@ -1,6 +1,9 @@
 import util.*;
 
 import java.util.Vector;
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.net.InetSocketAddress;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -18,7 +21,12 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.http.HttpVersion;
 //=========================
 
-import java.lang.reflect.Constructor;
+//for built-in error handler
+import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.eclipse.jetty.server.Request;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 //http://download.eclipse.org/jetty/9.3.7.v20160115/apidocs/org/eclipse/jetty/websocket/api/package-summary.html
 //https://www.eclipse.org/jetty/documentation/9.3.x/embedding-jetty.html
@@ -38,10 +46,13 @@ public class WebServer
 	public Vector context		=new Vector();
 	public int start_on_same_server	=0;
 	public int port_range_start	=8081;
+	public String bind_to_interface="127.0.0.1"; //only localhost. all: 0.0.0.0
 	public int use_ssl		=0;
 	public String keystore_uri	="resources/keystore";
 	public String keystore_pass	="123456";
 	//===end configurable parameters
+
+	private ErrorHandler errorHandler;
 
 //========================================================================
 	public static void main(String[] args) throws Exception
@@ -70,9 +81,8 @@ public class WebServer
 			,new HttpConnectionFactory(https_config)
 		);
 		sslConnector.setPort(port);
-
+		sslConnector.setHost(bind_to_interface);
 		server.addConnector(sslConnector);
-
 		return server;
 	}
 
@@ -157,6 +167,9 @@ public class WebServer
 			Server server=null;
 			HandlerCollection handler_collection=null;
 
+			//common for all
+			errorHandler = new CustomErrorHandler();
+
 			int port=port_range_start;
 
 			if(start_on_same_server==1)
@@ -164,7 +177,7 @@ public class WebServer
 				if(use_ssl==0)
 				{
 					System.out.println("creating server on HTTP port "+port);
-					server = new Server(port);
+					server = new Server(InetSocketAddress.createUnresolved(bind_to_interface,port));
 				}
 				else
 				{
@@ -199,7 +212,7 @@ public class WebServer
 						if(use_ssl==0) //http://
 						{
 							System.out.println("creating server on HTTP port "+port+" for handler instance # "+(i+1)+" of "+handlers.get(h)+", context "+context.get(h));
-							server = new Server(port);
+							server = new Server(InetSocketAddress.createUnresolved(bind_to_interface,port));
 						}
 						else //https://
 						{
@@ -207,6 +220,7 @@ public class WebServer
 							server = getSslServer(port);
 						}
 						server.setHandler(context_handler);
+						server.addBean(errorHandler);
 						server.start();
 						///server.join();
 						port++;
@@ -217,6 +231,7 @@ public class WebServer
 			if(start_on_same_server==1)
 			{
 				server.setHandler(handler_collection);
+				server.addBean(errorHandler);
 				server.start();
 				server.join();
 			}
@@ -235,5 +250,17 @@ public class WebServer
 		propertiesFileUri=configfile_uri;
 		return LProps.load(propertiesFileUri,this);
 	}
+
+//========================================================================
+	class CustomErrorHandler extends ErrorHandler
+	{
+		//public ByteBuffer badMessageError(int status,String reason,HttpFields fields)
+		public void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) throws IOException
+		{
+			PrintWriter pw=new PrintWriter(response.getOutputStream());
+			pw.println("oops.");
+			pw.close();
+		}
+	}//end inner class CustomErrorHandler
 }//end class WebServer
 //EOF
