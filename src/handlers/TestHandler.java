@@ -7,9 +7,9 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 //import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Cookie;
 
 import java.util.Enumeration;
-import java.util.Scanner;
 import java.util.Properties;
 
 import java.io.IOException;
@@ -74,6 +74,16 @@ public class TestHandler extends AbstractHandler
 		{
 			String paramName = (String)params.nextElement();
 			System.out.println("Parameter: " + paramName + " = " + req.getParameter(paramName));
+		}
+
+		//get session cookie
+		Cookie[] cookies=req.getCookies();
+		if(cookies !=null)
+		{
+			for(Cookie cookie : cookies)
+			{
+				System.out.println("Cookie: " + cookie.getName() + " = " + cookie.getValue());
+			}
 		}
 	}//end printRequest()
 
