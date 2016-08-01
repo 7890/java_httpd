@@ -5,7 +5,6 @@ import interfaces.*;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,14 +27,14 @@ import java.lang.reflect.Constructor;
 
 //tb/1606
 //all-in-one upload html form is included in this handler
-//http://localhost:8081/?upload_form
+//http://localhost:8081/upload_form
 
 //========================================================================
 //========================================================================
 public class UploadHandler extends AbstractHandler
 {
 	//this file is loaded if found in current directory
-	private static String propertiesFileUri="UploadHandler.properties";
+	private String propertiesFileUri="UploadHandler.properties";
 
 	//===configurable parameters (here: default values)
 	public String upload_html_form			="resources/upload_form.html";
@@ -54,7 +53,7 @@ public class UploadHandler extends AbstractHandler
 	private PostUpload post;
 
 //========================================================================
-	public UploadHandler()
+	public UploadHandler() throws Exception
 	{
 		if(!LProps.load(propertiesFileUri,this))
 		{
@@ -102,11 +101,43 @@ public class UploadHandler extends AbstractHandler
 	}
 
 //========================================================================
+	public void sendFile(HttpServletResponse res, String file_uri) throws IOException
+	{
+		System.err.println("sending file "+file_uri);
+		//deliver all-in-one html login form
+		res.setHeader("Content-Type", "text/html");
+		OutputStream os=res.getOutputStream();
+		InputStream is=new FileInputStream(file_uri);
+
+		byte[] buf = new byte[4096];
+		for (int nChunk = is.read(buf); nChunk!=-1; nChunk = is.read(buf))
+		{
+			os.write(buf, 0, nChunk);
+		}
+		os.close();
+		is.close();
+	}
+
+//========================================================================
+	private void sendUploadForm(HttpServletResponse res) throws IOException
+	{
+		sendFile(res,upload_html_form);
+	}
+
+//========================================================================
 	public void handle(String target,
 			Request baseRequest,
 			HttpServletRequest request,
 			HttpServletResponse response ) throws IOException
 	{
+		if(request.getRequestURI().equals("/")
+			|| request.getRequestURI().equals("/upload_form")
+		)
+		{
+			sendUploadForm(response);
+			baseRequest.setHandled(true);
+			return;
+		}
 
 		if(request.getMethod()=="OPTIONS")
 		{
@@ -118,26 +149,11 @@ public class UploadHandler extends AbstractHandler
 		else if(request.getMethod()=="POST")
 		{
 			System.err.println("got POST request");
+
 			response.setHeader("Access-Control-Allow-Origin", Access_Control_Allow_Origin);
 
-			boolean found_filename_header=false;
-			String filename="";
-
-			//check headers
-			Enumeration headerNames = request.getHeaderNames();
-			while(headerNames.hasMoreElements())
-			{
-				String headerName = (String)headerNames.nextElement();
-//				System.out.println("Header: " + headerName + " = " + request.getHeader(headerName));
-				if(headerName.toLowerCase().equals("x_filename"))
-				{
-					found_filename_header=true;
-					filename=request.getHeader(headerName);
-					break;
-				}
-			}
-
-			if(!found_filename_header)
+			String filename=request.getHeader("X_FILENAME");
+			if(filename==null)
 			{
 				System.err.println("/!\\ could not parse file upload request: x_filename header not found.");
 				baseRequest.setHandled(true);
@@ -186,50 +202,12 @@ public class UploadHandler extends AbstractHandler
 
 			System.err.println("upload DONE:  "+filename);
 		}
-		else if(request.getMethod()=="GET")
-		{
-			System.err.println("got GET request");
-			boolean found_param=false;
-			//get params
-			Enumeration params = request.getParameterNames();
-			while(params.hasMoreElements())
-			{
-				String paramName = (String)params.nextElement();
-//				System.out.println("Parameter: " + paramName + " = " + request.getParameter(paramName));
-				if(paramName.equals("upload_form"))
-				{
-					found_param=true;
-					break;
-				}
-			}
-			if(found_param)
-			{
-				//deliver all-in-one html upload form
-				response.setHeader("Content-Type", "text/html");
-				OutputStream os=response.getOutputStream();
-				InputStream is=new FileInputStream(upload_html_form);
-
-				byte[] buf = new byte[4096];
-				for (int nChunk = is.read(buf); nChunk!=-1; nChunk = is.read(buf))
-				{
-					os.write(buf, 0, nChunk);
-				}
-				os.close();
-				is.close();
-			}
-			else
-			{
-				System.err.println("param 'upload_form' not found.");
-			}
-		}
 		else
 		{///
 			System.err.println("/!\\ request not understood.");
 		}
 
 		baseRequest.setHandled(true);
-		return;
-
 	}//end handle()
 }//end class UploadHandler
 //EOF
