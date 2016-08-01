@@ -1,0 +1,40 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta charset="UTF-8">  
+<title>Login</title>
+<style>
+legend
+{
+	font-weight: bold;
+	color: #333;
+}
+
+#loginform
+{
+	width: 400px;
+}
+
+#loginform input:not([type=submit])
+{
+	width: 95%;
+	padding: 5px;
+	border: 1px solid rgba(0, 0, 0, 0.3);
+	border-radius: 3px;
+	box-shadow: inset 0px 1px 3px 0px rgba(0, 0, 0, 0.1), 
+		0px 1px 0px 0px rgba(250, 250, 250, 0.5) ;
+}
+</style>
+</head>
+<body>
+<form id="loginform" name="loginform" action="" method="post" accept-charset="utf-8">
+<fieldset>
+<legend>Credentials</legend>
+<p><input type="text" id="username" name="username" placeholder="Username" autocomplete="off" required></p>
+<p><input type="password" id="password" name="password" placeholder="Password" required></p>
+<p><input type="submit" value="Login"></p>
+</fieldset>
+</form>
+<script>document.getElementById("username").focus();</script>
+</body>
+</html>
