@@ -9,6 +9,8 @@ build="$DIR"/_build
 archive="$DIR"/archive
 #doc="$DIR"/doc
 
+MCKOI="$archive/mckoidb.jar"
+
 #linux / osx different mktemp call
 #TMPFILE=`mktemp 2>/dev/null || mktemp -t /tmp`
 
@@ -73,8 +75,8 @@ run()
 	jetty_libs="${jetty_libs}:"${jlib}/jetty-util-9.2.10.v20150310.jar
 	jetty_libs="${jetty_libs}:"${jlib}/servlet-api-3.1.jar
 
-echo	$JAVA -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
-	$JAVA -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" WebServer
+echo	$JAVA -classpath .:"$build":"$jetty_libs":"$MCKOI":"$osm_renderer_build_dir" WebServer
+	$JAVA -classpath .:"$build":"$jetty_libs":"$MCKOI":"$osm_renderer_build_dir" WebServer
 #	java -verbose:class ... >/tmp/out.txt 2>&1
 #	cat /tmp/out.txt | grep "\[Loaded" | grep "\.jar" | rev | cut -d"/" -f1 | rev | sort | uniq | cut -d"]" -f1 >/tmp/jars.txt
 }
