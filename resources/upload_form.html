@@ -6,8 +6,10 @@
 <script>
 	//===configure===
 	//form_action="http://127.0.0.1:8081/";
-	//leaving empty is ok when this page was delivered through handler.UploadHandler (?upload_form)
-	form_action="";
+	//leaving empty is ok when this page was delivered through handler.UploadHandler (/ or /upload_form)
+	form_action="/upload";
+
+	var session_timeout_s=50;
 
 	var upload_counter=0;
 
@@ -23,6 +25,27 @@
 		o.innerHTML="";
 		upload_counter=0;
 	}
+
+	function logout()
+	{
+		//hack. session will be invalidated
+		window.location="/?logout";
+	}
+
+	//pseudo auto-logout
+	var timeout;
+
+	function addTimer()
+	{
+		timeout=setTimeout(function(){/*logout();*/},(session_timeout_s*1000));
+	}
+
+	function cancelTimeout()
+	{
+		clearTimeout(timeout);
+	}
+
+	addTimer();
 </script>
 <!-- ======================================================================= -->
 <style>
@@ -136,6 +159,7 @@ pre
 </head>
 <!-- ======================================================================= -->
 <body>
+<input type="button" id="logout" name="logout" value="logout" onclick="logout();"/>
 <form id="upload" action="" method="POST" enctype="multipart/form-data">
 <fieldset>
 <legend>File Upload</legend>
@@ -180,6 +204,9 @@ pre
 	// file selection
 	function fileSelectHandler(e)
 	{
+		cancelTimeout();
+		addTimer();
+
 		// cancel event and hover styling
 		fileDragHover(e);
 
@@ -233,7 +260,7 @@ pre
 			xhr.upload.addEventListener("error", function(e)
 			{
 //				console.log("error transfer");
-				progress.innerHTML=file.name+"<br/>status: upload failed!";
+				progress.innerHTML=file.name+"<br/>status: upload failed! ";
 			}, false);
 
 			// file received/failed
@@ -250,7 +277,13 @@ pre
 					}
 					else
 					{
+						progress.innerHTML=progress.innerHTML+" (ERROR: "+xhr.status+")";
 						progress.className = "failed";
+						//if unauthorized, maybe session expired
+						if(xhr.status=="401")
+						{
+							logout();
+						}
 					}
 				}
 			};
