@@ -203,6 +203,13 @@ public class WebServer
 					Constructor<?> cons = c.getConstructor();
 					context_handler.setHandler((AbstractHandler)cons.newInstance());
 
+					///
+					/*
+					String[] vhosts=new String[1];
+					vhosts[0]="foo.bar.foo";
+					context_handler.setVirtualHosts(vhosts);
+					*/
+
 					if(start_on_same_server==1)
 					{
 						handler_collection.addHandler(context_handler);
@@ -220,6 +227,7 @@ public class WebServer
 							server = getSslServer(port);
 						}
 						server.setHandler(context_handler);
+						///errorHandler.setServer(server);
 						server.addBean(errorHandler);
 						server.start();
 						///server.join();
@@ -231,6 +239,7 @@ public class WebServer
 			if(start_on_same_server==1)
 			{
 				server.setHandler(handler_collection);
+				errorHandler.setServer(server);
 				server.addBean(errorHandler);
 				server.start();
 				server.join();
@@ -239,6 +248,7 @@ public class WebServer
 		catch(Exception e)
 		{
 			System.err.println("/!\\ "+e);
+			e.printStackTrace();
 			System.err.println("/!\\ could not start up. terminating");
 			System.exit(1);
 		}
