@@ -171,7 +171,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 		ps_insert_session = db_connection.prepareStatement(
 			"INSERT INTO tbl_session "
 			+"(id,id_user,hash,created,last_access,logout) "
-			+"VALUES (NEXTVAL('seq_tbl_file_id'),?,?,?,?,0);"
+			+"VALUES (NEXTVAL('seq_tbl_session_id'),?,?,?,?,0);"
 		);
 
 		ps_get_session = db_connection.prepareStatement(
