@@ -48,29 +48,26 @@ public class SessionUploadHandler extends UploadHandler
 			baseRequest.setHandled(true);
 			return; 
 		}
-		if(authorized==0)
+		if(authorized!=1)
 		{
 			//possibly XHR request. don't send "human" login form
-			if(request.getHeader("X_FILENAME")!=null)
+			if(authorized<=0 && request.getHeader("X_FILENAME")!=null)
 			{
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED");
 			}
-			else
+			else if(authorized==0)
 			{
 				try{sm.sendLoginForm(response);}catch(Exception e){e.printStackTrace();}
 			}
-			try{sm.close();}catch(Exception e1){e1.printStackTrace();}
-			baseRequest.setHandled(true);
-			return;
-		}
-		else if(authorized==-1)
-		{
-			try{sm.sendLogoutRedirect(response);}catch(Exception e){e.printStackTrace();}
-			try{sm.close();}catch(Exception e1){e1.printStackTrace();}
-			baseRequest.setHandled(true);
-			return;
-		}
+			else if(authorized==-1)
+			{
+				try{sm.sendLogoutRedirect(response);}catch(Exception e){e.printStackTrace();}
+			}
 
+			try{sm.close();}catch(Exception e1){e1.printStackTrace();}
+			baseRequest.setHandled(true);
+			return;
+		}
 		super.handle(target,baseRequest,request,response);
 	}//end handle()
 }//end class SessionUploadHandler
