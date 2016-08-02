@@ -41,6 +41,7 @@ public class SessionDownloadHandler extends DownloadHandler
 		catch(Exception e)
 		{
 			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED");
 			try{sm.close();}catch(Exception e1){e1.printStackTrace();}
 			baseRequest.setHandled(true);
 			return;	
