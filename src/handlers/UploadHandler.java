@@ -130,8 +130,8 @@ public class UploadHandler extends AbstractHandler
 			HttpServletRequest request,
 			HttpServletResponse response ) throws IOException
 	{
-		if(request.getRequestURI().equals("/")
-			|| request.getRequestURI().equals("/upload_form")
+		if(request.getPathInfo().equals("/")
+			|| request.getPathInfo().equals("/upload_form")
 		)
 		{
 			sendUploadForm(response);
