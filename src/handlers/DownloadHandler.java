@@ -80,7 +80,7 @@ public class DownloadHandler extends AbstractHandler
 		try
 		{
 			//get requested file from uri
-			String ruri=request.getRequestURI();
+			String ruri=request.getPathInfo();
 			String file_link=ruri.substring(1,ruri.length());
 			if(file_link==null)
 			{
