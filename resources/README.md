@@ -2,7 +2,7 @@
 1) Create self-signed certificate with keytool (part of Java JDK) in current directory:
 
 ```
-keytool -keystore keystore -alias jetty -genkey -keyalg RSA -sigalg SHA256withRSA
+keytool -keystore keystore -alias jetty -genkey -keyalg RSA -sigalg SHA256withRSA -validity 365
 ```
 
 2) Set keystore URI and password in WebServer.properties
