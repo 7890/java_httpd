@@ -235,7 +235,7 @@ pre
 			//var progress = o.appendChild(document.createElement("p"));
 			//newest progress bar on top
 			var progress = o.insertBefore(document.createElement("p"),o.childNodes[0]);
-			progress.appendChild(document.createTextNode(counter+') '+file.name));
+			progress.appendChild(document.createTextNode(counter+') '+file.name+': waiting for upload...'));
 
 			// progress bar
 			xhr.upload.addEventListener("progress", function(e)
