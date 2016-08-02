@@ -86,9 +86,9 @@ public class CustomSessionManager implements interfaces.SessionManager
 		echo -n 'aa987r234hap8=)(/nfd9f87abcd' | sha1sum | tr a-z A-Z
 		997885ADEF635172CA11908A47698D10D639795C  -
 	*/
-	public String staticRandom="aa987r234hap8=)(/nfd9f87";
+	public String static_random="aa987r234hap8=)(/nfd9f87";
 
-	//database: see db.conf
+	public int cookie_lifetime_s=60; //==client side session timeout
 
 	//connect to database using TCP
 	public String db_connection_url = "jdbc:mckoi://localhost";
@@ -100,7 +100,6 @@ public class CustomSessionManager implements interfaces.SessionManager
 
 	public String login_form_file_uri="./resources/login_form.html";
 	public String logout_redirect_file_uri="./resources/logout_redirect.html";
-
 	//===end configurable parameters
 
 	private MessageDigest md;
@@ -455,7 +454,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 		String first4=sid.substring(0,4);
 		String sid_pure=sid.substring(4,44);
 //		System.err.println("SID FIRST "+first4+" PURE "+sid_pure);
-		return first4.equals( toHashString( new StringBuffer(staticRandom+sid_pure) ).substring(0,4) );
+		return first4.equals( toHashString( new StringBuffer(static_random+sid_pure) ).substring(0,4) );
 	}
 
 //http://stackoverflow.com/questions/8100634/get-the-post-request-body-from-httpservletrequest
@@ -493,7 +492,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 		String encodedHash=null;
 
 		//create hash from request
-		requestHash=new StringBuffer(staticRandom);
+		requestHash=new StringBuffer(static_random);
 		requestHash.append(req.getProtocol());
 		requestHash.append(req.getScheme());
 		requestHash.append(req.getRemoteAddr());
@@ -547,14 +546,14 @@ public class CustomSessionManager implements interfaces.SessionManager
 			{
 				//does a user with that password exist?
 				System.out.println("user: " + username + " password_hash: "
-					+" "+toHashString(new StringBuffer(staticRandom+password)));
+					+" "+toHashString(new StringBuffer(static_random+password)));
 
 				///late init
 				connectDb();
 				prepareStatements();
 
 				user=ps_get_user_by_login_(username
-					,toHashString(new StringBuffer(staticRandom+password))
+					,toHashString(new StringBuffer(static_random+password))
 				);
 				if(user==null)
 				{
@@ -573,7 +572,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 					requestHash.append(user.password_hash);
 					encodedHash=toHashString(requestHash);
 
-					String session_id=toHashString(new StringBuffer(staticRandom+encodedHash)).substring(0,4)
+					String session_id=toHashString(new StringBuffer(static_random+encodedHash)).substring(0,4)
 						+encodedHash;
 
 					System.err.println("new _csid:    "+session_id);
@@ -630,7 +629,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 			requestHash.append(user.password_hash);
 			encodedHash=toHashString(requestHash);
 
-			String session_id=toHashString(new StringBuffer(staticRandom+encodedHash)).substring(0,4)
+			String session_id=toHashString(new StringBuffer(static_random+encodedHash)).substring(0,4)
 				+encodedHash;
 
 			System.err.println("rehash:       "+session_id);
@@ -692,7 +691,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 			else
 			{
 				sessionCookie = new Cookie("_csid",session.hash);
-				sessionCookie.setMaxAge(1*60); ///
+				sessionCookie.setMaxAge(cookie_lifetime_s); ///
 				res.addCookie(sessionCookie);
 				close();
 				return 1;
