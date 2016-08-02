@@ -204,8 +204,8 @@ public class CustomSessionManager implements interfaces.SessionManager
 
 		ps_insert_request  = db_connection.prepareStatement(
 			"INSERT INTO tbl_request "
-			+"(id,id_user,created,protocol,scheme,remote_addr,remote_host,is_secure,user_agent,server_name,server_port,method,uri,query_string)"
-			+"VALUES (?, ?, TONUMBER(CURRENT_TIMESTAMP), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+			+"(id,id_user,created,protocol,scheme,remote_addr,remote_host,is_secure,user_agent,server_name,server_port,method,content_length,content_type,uri,context_path,path_info,query_string)"
+			+"VALUES (?, ?, TONUMBER(CURRENT_TIMESTAMP), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 		);
 
 		ps_check_perms = db_connection.prepareStatement(
@@ -282,7 +282,11 @@ public class CustomSessionManager implements interfaces.SessionManager
 		,String server_name
 		,int server_port
 		,String method
+		,int content_length
+		,String content_type
 		,String uri
+		,String context_path
+		,String path_info
 		,String query_string
 	) throws Exception
 	{
@@ -298,8 +302,12 @@ public class CustomSessionManager implements interfaces.SessionManager
 		ps_insert_request.setString(9,server_name);
 		ps_insert_request.setInt(10,server_port);
 		ps_insert_request.setString(11,method);
-		ps_insert_request.setString(12,uri);
-		ps_insert_request.setString(13,query_string);
+		ps_insert_request.setInt(12,content_length);
+		ps_insert_request.setString(13,content_type);
+		ps_insert_request.setString(14,uri);
+		ps_insert_request.setString(15,context_path);
+		ps_insert_request.setString(16,path_info);
+		ps_insert_request.setString(17,query_string);
 
 		ResultSet rs = ps_insert_request.executeQuery();
 		db_connection.commit();
@@ -650,12 +658,12 @@ public class CustomSessionManager implements interfaces.SessionManager
 				,req.getServerName()
 				,req.getServerPort()
 				,req.getMethod()
-				,req.getRequestURI()
+				,req.getContentLength()
+				,req.getContentType()
+				,req.getRequestURI()  // /a/bc
+				,req.getContextPath() // /a
+				,req.getPathInfo()    // /bc
 				,req.getQueryString()
-/*
-				System.out.println("Context Path: " + req.getContextPath());
-				System.out.println("Path Info: " + req.getPathInfo());
-*/
 			);
 
 			allow_access=ps_check_perms_(user.condition,next_request_id);//request.id);

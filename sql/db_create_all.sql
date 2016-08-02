@@ -55,14 +55,16 @@ CREATE TABLE tbl_request
 	server_name	STRING(256) NOT NULL,
 	server_port	INT NOT NULL,
 	method		STRING(8) NOT NULL,
---content_length	INT NOT NULL,
---content_type		STRING(256),
+	content_length	INT NOT NULL,
+	content_type	STRING(256),
 	uri		STRING(256) NOT NULL,
+	context_path	STRING(256) NOT NULL,
+	path_info	STRING(256) NOT NULL,
 	query_string 	STRING(1024) 
 );
 --INSERT INTO tbl_request (id,id_user,created,protocol,scheme,remote_addr,remote_host,is_secure
 --		,user_agent,server_name,server_port,method,uri,query_string) 
---	VALUES (0,0,0,'','','','',true,'','',0,'','','');
+--	VALUES (0,0,0,'','','','',true,'','',0,'',0,'','','','','');
 
 --=============================================================================
 CREATE TABLE tbl_condition
