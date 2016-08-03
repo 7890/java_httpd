@@ -106,6 +106,9 @@ public class CustomSessionManager implements interfaces.SessionManager
 
 	private Connection db_connection=null;
 
+	private v_user_condition_item user=null;
+	private v_session_item session=null;
+
 	private PreparedStatement ps_insert_session;
 	private PreparedStatement ps_insert_request;
 	private PreparedStatement ps_get_session;
@@ -481,8 +484,8 @@ public class CustomSessionManager implements interfaces.SessionManager
 		System.out.println("Request Is Secure: " + req.isSecure());
 		System.out.println("---");
 
-		v_user_condition_item user=null;
-		v_session_item session=null;
+		user=null;
+		session=null;
 
 		Cookie sessionCookie=null;
 		String _csid_test=null;
@@ -700,6 +703,18 @@ public class CustomSessionManager implements interfaces.SessionManager
 	}//end auth()
 
 //========================================================================
+	public v_user_condition_item getUser()
+	{
+		return user;
+	}
+
+//========================================================================
+	public v_session_item getSession()
+	{
+		return session;
+	}
+
+//========================================================================
 	public String toHashString(StringBuffer sb)
 	{
 		byte[] encodedHashB=md.digest( (sb.toString()).getBytes() );
@@ -734,75 +749,5 @@ public class CustomSessionManager implements interfaces.SessionManager
 	{
 		sendFile(res,logout_redirect_file_uri);
 	}
-
-//========================================================================
-//========================================================================
-	class v_user_condition_item
-	{
-		int id;
-		String username;
-		String password_hash;
-		int id_condition;
-		String condition;
-
-//========================================================================
-		public v_user_condition_item(ResultSet rs) throws Exception
-		{
-			ResultSetMetaData rsmd = rs.getMetaData();
-			int columnCount = rsmd.getColumnCount();
-			if(columnCount!=5)
-			{
-				throw new Exception("column count doesn't match");
-			}
-
-			id=rs.getInt(1);
-			username=rs.getString(2);
-			password_hash=rs.getString(3);
-			id_condition=rs.getInt(4);
-			condition=rs.getString(5);
-		}
-//========================================================================
-		public String toString()
-		{
-			return "USER: "+username;
-		}
-	}//end v_user_condition_item
-
-//========================================================================
-//========================================================================
-	class v_session_item
-	{
-		int id;
-		int id_user;
-		String hash;
-		long created;
-		long last_access;
-		long expires_in;
-		long logout;
-
-//========================================================================
-		public v_session_item(ResultSet rs) throws Exception
-		{
-			ResultSetMetaData rsmd = rs.getMetaData();
-			int columnCount = rsmd.getColumnCount();
-			if(columnCount!=7)
-			{
-				throw new Exception("column count doesn't match");
-			}
-
-			id=rs.getInt(1);
-			id_user=rs.getInt(2);
-			hash=rs.getString(3);
-			created=rs.getLong(4);
-			last_access=rs.getLong(5);
-			logout=rs.getLong(6);
-			expires_in=rs.getLong(7);
-		}
-//========================================================================
-		public String toString()
-		{
-			return("SESSION:      "+hash+" "+expires_in);
-		}
-	}//end v_session_item
 }//end class CustomSessionManager
 //EOF
