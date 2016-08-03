@@ -10,6 +10,8 @@ archive="$DIR"/archive
 #doc="$DIR"/doc
 
 MCKOI="$archive/mckoidb.jar"
+ST="$archive/ST-4.0.9.jar"
+ANTLR="$archive/antlr-3.5.2-complete.jar"
 
 #linux / osx different mktemp call
 #TMPFILE=`mktemp 2>/dev/null || mktemp -t /tmp`
@@ -54,8 +56,8 @@ compile()
 	jetty_home="$build"/"$jetty_dist_name"
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`
 
-#echo	$JAVAC -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
-	$JAVAC -classpath .:"$build":"$jetty_libs":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
+#echo	$JAVAC -classpath .:"$build":"$jetty_libs":"$ST":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
+	$JAVAC -classpath .:"$build":"$jetty_libs":"$ST":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
 }
 
 #========================================================================
@@ -75,8 +77,8 @@ run()
 	jetty_libs="${jetty_libs}:"${jlib}/jetty-util-9.2.10.v20150310.jar
 	jetty_libs="${jetty_libs}:"${jlib}/servlet-api-3.1.jar
 
-echo	$JAVA -classpath .:"$build":"$jetty_libs":"$MCKOI":"$osm_renderer_build_dir" WebServer
-	$JAVA -classpath .:"$build":"$jetty_libs":"$MCKOI":"$osm_renderer_build_dir" WebServer
+echo	$JAVA -classpath .:"$build":"$jetty_libs":"$MCKOI":"$ST":"$ANTLR":"$osm_renderer_build_dir" WebServer
+	$JAVA -classpath .:"$build":"$jetty_libs":"$MCKOI":"$ST":"$ANTLR":"$osm_renderer_build_dir" WebServer
 #	java -verbose:class ... >/tmp/out.txt 2>&1
 #	cat /tmp/out.txt | grep "\[Loaded" | grep "\.jar" | rev | cut -d"/" -f1 | rev | sort | uniq | cut -d"]" -f1 >/tmp/jars.txt
 }
