@@ -13,10 +13,12 @@ DROP TABLE IF EXISTS tbl_condition;
 --=============================================================================
 CREATE TABLE tbl_user
 (
-	id 		INT NOT NULL UNIQUE,
-	username 	STRING(256) NOT NULL UNIQUE,
+	id 		INT NOT NULL,
+	username 	STRING(256) NOT NULL,
 	password_hash 	STRING(256) NOT NULL,
-	id_condition	INT NOT NULL
+	id_condition	INT NOT NULL,
+	UNIQUE (id),
+	UNIQUE (username)
 );
 --INSERT INTO tbl_user (id,username,password_hash,allow) VALUES (0,'tom','abcd',0);
 
@@ -31,19 +33,20 @@ INSERT INTO tbl_user (id,username,password_hash,id_condition) VALUES (1,'tommy',
 --=============================================================================
 CREATE TABLE tbl_session
 (
-	id 		INT NOT NULL UNIQUE,
+	id 		INT NOT NULL,
 	id_user 	STRING(256) NOT NULL,
 	hash 		STRING(256) NOT NULL,
 	created		BIGINT NOT NULL,
 	last_access	BIGINT NOT NULL,
-	logout		BIGINT NOT NULL
+	logout		BIGINT NOT NULL,
+	UNIQUE (id)
 );
 --INSERT INTO tbl_session (id,id_user,hash,created,last_access,logout) VALUES (0,0,'abcd',1,2,0);
 
 --=============================================================================
 CREATE TABLE tbl_request
 (
-	id 		INT NOT NULL UNIQUE,
+	id 		INT NOT NULL,
 	id_user 	STRING(256) NOT NULL,
 	created		BIGINT NOT NULL,
 	protocol	STRING(8) NOT NULL,
@@ -60,7 +63,8 @@ CREATE TABLE tbl_request
 	uri		STRING(256) NOT NULL,
 	context_path	STRING(256) NOT NULL,
 	path_info	STRING(256) NOT NULL,
-	query_string 	STRING(1024) 
+	query_string 	STRING(1024),
+	UNIQUE (id)
 );
 --INSERT INTO tbl_request (id,id_user,created,protocol,scheme,remote_addr,remote_host,is_secure
 --		,user_agent,server_name,server_port,method,uri,query_string) 
@@ -69,15 +73,16 @@ CREATE TABLE tbl_request
 --=============================================================================
 CREATE TABLE tbl_condition
 (
-	id 		INT NOT NULL UNIQUE,
-	name		STRING(256) NOT NULL UNIQUE,
-	condition 	STRING(1024) NOT NULL
+	id 		INT NOT NULL,
+	name		STRING(256) NOT NULL,
+	condition 	STRING(1024) NOT NULL,
+	UNIQUE (id),
+	UNIQUE (name)
 );
 INSERT INTO tbl_condition (id,name,condition) VALUES (0,'always true','1==1');
 INSERT INTO tbl_condition (id,name,condition) VALUES (1,'always false','1==0');
-
-INSERT INTO tbl_condition (id,name,condition) VALUES (2,'rule 1','server_port=9081');
-INSERT INTO tbl_condition (id,name,condition) VALUES (3,'rule 2','server_port=9081 or server_port=9082');
+--INSERT INTO tbl_condition (id,name,condition) VALUES (2,'rule 1','server_port=9081');
+--INSERT INTO tbl_condition (id,name,condition) VALUES (3,'rule 2','server_port=9081 or server_port=9082');
 
 --=============================================================================
 DROP VIEW v_user_condition;
