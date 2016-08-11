@@ -214,7 +214,16 @@ public class SQLQueryHandler extends AbstractHandler
 			catch(Exception e)
 			{
 				e.printStackTrace();
-				throw new IOException(e);
+				try{close();}catch(Exception e1){}
+				try
+				{
+					response.setHeader("Content-Type", "text/plain");
+					PrintWriter pw=new PrintWriter(response.getOutputStream());
+					pw.println("ERROR: "+e.getMessage());
+					pw.close();
+				}
+				catch(Exception e2){}
+				///throw new IOException(e);
 			}
 		}//end if method POST
 	}//end handle()
