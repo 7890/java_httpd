@@ -95,10 +95,10 @@ public class SQLQueryHandler extends AbstractHandler
 			HttpServletRequest request,
 			HttpServletResponse response ) throws IOException
 	{
-		String ruri=request.getPathInfo();
+		String rpinfo=request.getPathInfo();
 
-		if(request.getPathInfo().equals("/")
-			|| request.getPathInfo().equals("/query_form")
+		if(rpinfo.equals("/")
+			|| rpinfo.equals("/query_form")
 		)
 		{
 			sendSQLQueryForm(response);
@@ -106,7 +106,7 @@ public class SQLQueryHandler extends AbstractHandler
 			return;
 		}
 
-		if(request.getMethod()=="OPTIONS" && ruri.equals("/query"))
+		if(request.getMethod()=="OPTIONS" && rpinfo.equals("/query"))
 		{
 			System.err.println("got OPTIONS request");
 			response.setHeader("Access-Control-Allow-Origin", Access_Control_Allow_Origin);
@@ -115,7 +115,7 @@ public class SQLQueryHandler extends AbstractHandler
 			baseRequest.setHandled(true);
 			return;
 		}
-		else if(request.getMethod()=="POST" && ruri.equals("/query"))
+		else if(request.getMethod()=="POST" && rpinfo.equals("/query"))
 		{
 			response.setHeader("Access-Control-Allow-Origin", Access_Control_Allow_Origin);
 
