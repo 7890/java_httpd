@@ -47,6 +47,7 @@ fieldset
 </head>
 <!-- ======================================================================= -->
 <body>
+<input type="button" id="logout" name="logout" value="logout" onclick="logout();"/>
 <form id="sql_query_form" name="sql_query_form" action="/query" method="post" 
 	onsubmit="event.preventDefault(); submitForm(this);" accept-charset="utf-8">
 <!--http://stackoverflow.com/questions/8664486/javascript-code-to-stop-form-submission-->
@@ -96,6 +97,12 @@ function $id(id)
 }
 
 $id("text-sql-id").focus();
+
+function logout()
+{
+	//hack. session will be invalidated
+	window.location="/?logout";
+}
 
 /*
  * Takes a form node and sends it over AJAX.
@@ -150,6 +157,10 @@ function ajaxPost (form, callback, direct_submit)
 					}
 					$id("status-id").innerHTML="Done.";
 				}//end status 200
+				if(xhr.status=="401")
+				{
+					logout();
+				}
 			}
 			else
 			{///
