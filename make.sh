@@ -57,7 +57,7 @@ compile()
 	jetty_libs=`echo $(ls -1 "$jetty_home"/lib/*.jar) | sed 's/ /:/g'`
 
 #echo	$JAVAC -classpath .:"$build":"$jetty_libs":"$ST":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
-	$JAVAC -classpath .:"$build":"$jetty_libs":"$ST":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
+	$JAVAC -classpath .:"$build":"$jetty_libs":"$MCKOI":"$ST":"$osm_renderer_build_dir" -sourcepath "$src" -d "$build" "$src"/*.java "$src"/handlers/*.java "$src"/interfaces/*.java "$src"/hooks/*.java 
 }
 
 #========================================================================
