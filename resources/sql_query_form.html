@@ -1,0 +1,221 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta charset="UTF-8">  
+<title>SQL Query Form</title>
+<!-- ======================================================================= -->
+<style>
+body
+{
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 400;
+	color: #2b2b2b;
+	-webkit-font-smoothing: antialiased;
+	font-smoothing: antialiased;
+	background: #f6f6f6;
+}
+
+legend
+{
+	font-weight: bold;
+	color: #333;
+}
+
+fieldset
+{
+	border: none;
+}
+
+#sql_query_form
+{
+	width: 100%;
+	background: #eaebed;
+	border-radius: 3px;
+	box-shadow: inset 0px 0px 2px 1px rgba(0, 0, 0, 0.1), 
+		0px 1px 0px 0px rgba(250, 250, 250, 0.5) ;
+}
+
+.control
+{
+	float: left;
+	padding: 5px;
+}
+
+</style>
+</head>
+<!-- ======================================================================= -->
+<body>
+<form id="sql_query_form" name="sql_query_form" action="/query" method="post" 
+	onsubmit="event.preventDefault(); submitForm(this);" accept-charset="utf-8">
+<!--http://stackoverflow.com/questions/8664486/javascript-code-to-stop-form-submission-->
+	<fieldset>
+		<legend>SQL Query Form</legend>
+		<div>
+			<div class="control">Output:
+				<select id="select-output-id" name="select-output">
+					<option value="0">Display below</option>
+					<option value="1">Open in new window</option>
+					<option value="2">Download</option>
+				</select>
+			</div>
+
+			<div class="control">Format:
+				<select id="select-format-id" name="select-format">
+					<option value="0">Text Table</option>
+					<option value="1">HTML Table</option>
+					<option value="2">HTML styled div table</option>
+					<option value="3">CSV (;)</option>
+					<option value="4">XML (dummy)</option>
+				</select>
+			</div>
+
+			<div class="control">
+				<input type="submit" value="Execute Query">
+			</div>
+
+			<div class="control" id="status-id">Waiting for input.
+			</div>
+		</div>
+
+		<div style="clear: left;">
+			<legend>Input</legend>
+			<textarea id="text-sql-id" name="text-sql" rows="5" style="width: 100%;">SHOW TABLES;</textarea> 
+		</div>
+	</fieldset>
+</form>
+<div id="output-inner-id" style="background: #f6f6f6;"></div>
+<!-- ======================================================================= -->
+<script>
+form_action="https://localhost:9083/query";
+
+function $id(id)
+{
+	return document.getElementById(id);
+}
+
+$id("text-sql-id").focus();
+
+/*
+ * Takes a form node and sends it over AJAX.
+ * @param {HTMLFormElement} form - Form node to send
+ * @param {function} callback - Function to handle onload. 
+ */
+//http://stackoverflow.com/questions/6990729/simple-ajax-form-using-javascript-no-jquery
+//=============================================================================
+function ajaxPost (form, callback, direct_submit)
+{
+	var url = form.action;
+	var xhr = new XMLHttpRequest();
+	if(xhr.send)
+	{
+		$id("status-id").innerHTML="Query sent, waiting for reply...";
+
+		//progress
+		xhr.upload.addEventListener("progress", function(e)
+		{
+			console.log("loaded "+e.loaded);
+			if(e.loaded==e.total){}
+		}, false);
+		//complete
+		xhr.upload.addEventListener("load", function(e)
+		{
+			console.log("transfer complete");
+		}, false);
+		//failed
+		xhr.upload.addEventListener("error", function(e)
+		{
+			console.log("error transfer");
+		}, false);
+		// file received/failed
+		xhr.onreadystatechange = function(e)
+		{
+			if (xhr.readyState == xhr.DONE) //4
+			{
+				if(xhr.status == 200)
+				{
+					$id("status-id").innerHTML="Got reply. Displaying results...";
+
+					var output=$id("select-output-id");
+					var format=$id("select-format-id");
+					if(output.value=="0" && (format.value=="0" || format.value=="3"))
+					{
+						//wrap in <pre>
+						$id("output-inner-id").innerHTML='<pre>'+xhr.response+'</pre>';
+					}
+					else
+					{
+						$id("output-inner-id").innerHTML=xhr.response;
+					}
+					$id("status-id").innerHTML="Done.";
+				}//end status 200
+			}
+			else
+			{///
+			}
+		};
+
+		//This is a bit tricky, [].fn.call(form.elements, ...) allows us to call .fn
+		//on the form's elements, even though it's not an array. Effectively
+		//Filtering all of the fields on the form
+		var params = [].filter.call(form.elements, function(el)
+		{
+			//Allow only elements that don't have the 'checked' property
+			//Or those who have it, and it's checked for them.
+			return typeof(el.checked) === 'undefined' || el.checked;
+			//Practically, filter out checkboxes/radios which aren't checekd.
+		})
+		.filter(function(el) { return !!el.name; }) //Nameless elements die.
+		.filter(function(el) { return !el.disabled; }) //Disabled elements die.
+		.map(function(el)
+		{
+			//Map each field into a name=value string, make sure to properly escape!
+			return encodeURIComponent(el.name) + '=' + encodeURIComponent(el.value);
+		}).join('&'); //Then join all the strings by &
+
+		console.log("params: "+params);
+
+		xhr.open("POST", url);
+		// Changed from application/x-form-urlencoded to application/x-form-urlencoded
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+		//.bind ensures that this inside of the function is the XHR object.
+		xhr.onload = callback.bind(xhr); 
+
+		//All preperations are clear, send the request!
+		xhr.send(params);
+	}//end if can use xhr
+}//end ajaxPost()
+
+//=============================================================================
+function submitCallback(e)
+{
+	console.log("submit callback called");
+}
+
+//=============================================================================
+function submitForm(form)
+{
+	form.action=form_action;
+
+	var output=$id("select-output-id");
+	if(output.value==0) //same page
+	{
+		form.target="";
+		ajaxPost(form,submitCallback);
+	}
+	else if(output.value==1) //new window
+	{
+		form.target="_blank";
+		form.submit();
+	}
+	else if(output.value==2) //download
+	{
+		form.target="";
+		form.submit();
+	}
+}
+</script>
+</body>
+</html>
