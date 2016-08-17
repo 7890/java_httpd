@@ -68,7 +68,7 @@ fieldset
 					<option value="1">HTML Table</option>
 					<option value="2">HTML styled div table</option>
 					<option value="3">CSV (;)</option>
-					<option value="4">XML (dummy)</option>
+					<option value="4">XML</option>
 				</select>
 			</div>
 
@@ -146,10 +146,18 @@ function ajaxPost (form, callback, direct_submit)
 
 					var output=$id("select-output-id");
 					var format=$id("select-format-id");
-					if(output.value=="0" && (format.value=="0" || format.value=="3"))
+					if(output.value=="0" && (format.value=="0" || format.value=="3" || format.value=="4"))
 					{
 						//wrap in <pre>
-						$id("output-inner-id").innerHTML='<pre>'+xhr.response+'</pre>';
+
+						if(format.value=="4") //xml, escape
+						{
+							$id("output-inner-id").innerHTML='<pre>'+escapeString(xhr.response)+'</pre>';
+						}
+						else
+						{
+							$id("output-inner-id").innerHTML='<pre>'+xhr.response+'</pre>';
+						}
 					}
 					else
 					{
@@ -227,6 +235,17 @@ function submitForm(form)
 		form.submit();
 	}
 }
+
+//=============================================================================
+function escapeString(str)
+{
+	return str.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;');
+}
+
 </script>
 </body>
 </html>

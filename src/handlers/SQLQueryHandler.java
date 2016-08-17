@@ -55,6 +55,7 @@ public class SQLQueryHandler extends AbstractHandler
 	private CSVRSFormatter csv = new CSVRSFormatter();
 	private HTMLRSFormatter html = new HTMLRSFormatter(true); ///
 	private HTMLStyledRSFormatter html_styled = new HTMLStyledRSFormatter(true); ///
+	private XMLRSFormatter xml = new XMLRSFormatter(true); ///
 
 //========================================================================
 	public SQLQueryHandler()
@@ -138,7 +139,34 @@ public class SQLQueryHandler extends AbstractHandler
 				int columnCount = rsmd.getColumnCount();
 
 				boolean inline=false;
-				String displayName="Output";
+				String displayName="sql_query_output";
+
+				String format=request.getParameter("select-format");
+				if(format==null)
+				{
+					format="0";
+				}
+
+				if(format.equals("0"))//text table
+				{
+					displayName+=".txt";
+				}
+				else if(format.equals("1"))//html table
+				{
+					displayName+=".html";
+				}
+				else if(format.equals("2"))//html styled div table
+				{
+					displayName+=".html";
+				}
+				else if(format.equals("3"))//csv
+				{
+					displayName+=".csv";
+				}
+				else if(format.equals("4"))//xml
+				{
+					displayName+=".xml";
+				}
 
 				String output=request.getParameter("select-output");
 				if(output==null)
@@ -163,12 +191,6 @@ public class SQLQueryHandler extends AbstractHandler
 				}
 
 				OutputStreamWriter osw=new OutputStreamWriter(response.getOutputStream());
-
-				String format=request.getParameter("select-format");
-				if(format==null)
-				{
-					format="0";
-				}
 
 				if(format.equals("0"))//text table
 				{
@@ -204,7 +226,7 @@ public class SQLQueryHandler extends AbstractHandler
 				else if(format.equals("4"))//xml
 				{
 					response.setHeader("Content-Type", "text/xml");
-					///dummy
+					xml.formatRS(rs,osw);
 				}
 				rs.close();
 				osw.close();
