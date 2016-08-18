@@ -96,6 +96,16 @@ function $id(id)
 	return document.getElementById(id);
 }
 
+//detect ctrl+enter in textarea, submit form
+$id("text-sql-id").addEventListener("keydown", function (event)
+{
+	//console.log(event.keyCode);
+	if ((event.keyCode == 10 || event.keyCode == 13) && event.ctrlKey)
+	{
+		submitForm($id("sql_query_form"));
+	}
+}, false);
+
 $id("text-sql-id").focus();
 
 function logout()
