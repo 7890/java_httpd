@@ -37,6 +37,11 @@ fieldset
 		0px 1px 0px 0px rgba(250, 250, 250, 0.5) ;
 }
 
+#wait-id
+{
+	visibility: hidden;
+}
+
 .control
 {
 	float: left;
@@ -78,6 +83,10 @@ fieldset
 
 			<div class="control" id="status-id">Waiting for input.
 			</div>
+
+			<div class="control" id="wait-id"><img src="data:image/gif;base64,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"/>
+			</div>
+
 		</div>
 
 		<div style="clear: left;">
@@ -128,6 +137,7 @@ function ajaxPost (form, callback, direct_submit)
 	if(xhr.send)
 	{
 		$id("status-id").innerHTML="Query sent, waiting for reply...";
+		$id("wait-id").style.visibility="visible";
 
 		//progress
 		xhr.upload.addEventListener("progress", function(e)
@@ -138,6 +148,7 @@ function ajaxPost (form, callback, direct_submit)
 		//complete
 		xhr.upload.addEventListener("load", function(e)
 		{
+			$id("status-id").innerHTML="Got reply. Displaying results...";
 			console.log("transfer complete");
 		}, false);
 		//failed
@@ -152,8 +163,6 @@ function ajaxPost (form, callback, direct_submit)
 			{
 				if(xhr.status == 200)
 				{
-					$id("status-id").innerHTML="Got reply. Displaying results...";
-
 					var output=$id("select-output-id");
 					var format=$id("select-format-id");
 					if(output.value=="0" && (format.value=="0" || format.value=="3" || format.value=="4"))
@@ -174,14 +183,12 @@ function ajaxPost (form, callback, direct_submit)
 						$id("output-inner-id").innerHTML=xhr.response;
 					}
 					$id("status-id").innerHTML="Done.";
+					$id("wait-id").style.visibility="hidden";
 				}//end status 200
 				if(xhr.status=="401")
 				{
 					logout();
 				}
-			}
-			else
-			{///
 			}
 		};
 
