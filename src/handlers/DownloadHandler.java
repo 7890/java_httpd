@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.Properties;
+///import java.util.List;
+///import java.util.ArrayList;
 
 import java.io.IOException;
 
@@ -30,6 +32,10 @@ public class DownloadHandler extends AbstractHandler
 	public boolean default_send_inline=true;
 	public boolean allow_client_dispo_select=true;
 
+	//public String Access_Control_Allow_Origin       ="*";
+	public String Access_Control_Allow_Origin	="null"; //html loaded from anywhere, server running on localhost
+	public String Access_Control_Allow_Headers      ="content-type,x-requested-with";
+
 	public String not_found_file_uri="./resources/not_found.html";
 	//===end configurable parameters
 
@@ -49,25 +55,55 @@ public class DownloadHandler extends AbstractHandler
 
 		String dispo=(inline ? "inline" : "attachment");
 
-		response.setHeader("Content-Type", contentType);
+		boolean send_gzipped=false;
+
+		if(contentType.toLowerCase().startsWith("text")
+			|| contentType.toLowerCase().indexOf("javacript")>=0
+		)
+		{
+			send_gzipped=true;
+			response.setHeader("Content-Type", contentType+"; charset=UTF-8");
+		}
+		else
+		{
+			response.setHeader("Content-Type", contentType);
+			response.setHeader("Content-Length", ""+f.length());
+		}
+
 		if(content_dispo)
 		{
 			response.setHeader("Content-Disposition", dispo+";filename=\"" + displayName + "\"");
 		}
-		response.setHeader("Content-Length", ""+f.length());
+
 		//response.setDateHeader("Last-Modified", lastModified);
 		//response.setDateHeader("Expires", expires);
 
 		OutputStream os=response.getOutputStream();
-		InputStream is=new FileInputStream(f);
 
-		byte[] buf = new byte[4096];
-		for (int nChunk = is.read(buf); nChunk!=-1; nChunk = is.read(buf))
+		if(send_gzipped)
 		{
-			os.write(buf, 0, nChunk);
+			System.err.println("sending text file gzipped");
+			response.setHeader("Content-Encoding", "gzip");
+			Zipper.streamFileAsGzip(f,os);
+		}
+		else
+		{
+			InputStream is=new FileInputStream(f);
+
+			byte[] buf = new byte[4096];
+			for (int nChunk = is.read(buf); nChunk!=-1; nChunk = is.read(buf))
+			{
+				os.write(buf, 0, nChunk);
+			}
+			is.close();
 		}
 		os.close();
-		is.close();
+
+/*
+		List<File> files=new ArrayList<File>();
+		files.add(f);
+		Zipper.streamFilesToZip(files, os);
+*/
 	}//end sendFile()
 
 //========================================================================
@@ -76,6 +112,19 @@ public class DownloadHandler extends AbstractHandler
 			HttpServletRequest request,
 			HttpServletResponse response ) throws IOException
 	{
+		if(request.getMethod()=="OPTIONS")
+		{
+			System.err.println("got OPTIONS request");
+			response.setHeader("Access-Control-Allow-Origin", Access_Control_Allow_Origin);
+			response.setHeader("Access-Control-Allow-Headers", Access_Control_Allow_Headers);
+			response.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+
+			baseRequest.setHandled(true);
+			return;
+		}
+
+		response.setHeader("Access-Control-Allow-Origin", Access_Control_Allow_Origin);
+
 		FileDownload fd=null;
 		try
 		{
@@ -135,6 +184,7 @@ public class DownloadHandler extends AbstractHandler
 		{
 			try{fd.close();}catch(Exception e){e.printStackTrace();}
 		}
+
 
 		baseRequest.setHandled(true);
 	}//end handle()
