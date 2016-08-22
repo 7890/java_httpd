@@ -127,14 +127,31 @@ public class SQLQueryHandler extends AbstractHandler
 				baseRequest.setHandled(true);
 				return;
 			}
-
 			try
 			{
 				System.err.println("sql: "+sql);
 				///need to parse, filter comments etc like execsql...
 
+				//read from/count form fields
+				String from_rec_=request.getParameter("from-rec-index");
+				String rec_count_=request.getParameter("rec-count");
+
+				int from_rec=0;
+				int rec_count=-1;//no limit
+
+				try{from_rec=Integer.parseInt(from_rec_);}catch(Exception e){}
+				try{rec_count=Integer.parseInt(rec_count_);}catch(Exception e){}
+
+				System.err.println("from: "+from_rec+" count: "+rec_count);
+
 				connectDb();
-				ResultSet rs=db_connection.createStatement().executeQuery(sql);
+
+				Statement stmt=db_connection.createStatement();
+				///stmt.setFetchSize(100);
+				///stmt.setMaxRows(100);
+
+				ResultSet rs=stmt.executeQuery(sql);;
+
 				ResultSetMetaData rsmd = rs.getMetaData();
 				int columnCount = rsmd.getColumnCount();
 
@@ -202,6 +219,11 @@ public class SQLQueryHandler extends AbstractHandler
 				else if(format.equals("1"))//html table
 				{
 					response.setHeader("Content-Type", "text/html");
+
+					//setting from/count values for html resultset formatter
+					html.from_record_index=from_rec;
+					html.record_count=rec_count;
+
 					html.formatRS(rs,osw);
 				}
 				else if(format.equals("2"))//html styled div table

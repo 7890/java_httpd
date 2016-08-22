@@ -76,6 +76,16 @@ fieldset
 					<option value="4">XML</option>
 				</select>
 			</div>
+		</div>
+		<div style="clear: both;">
+
+			<div class="control">From:
+				<input type="textarea" value="1" size="4" id="from-rec-index" name="from-rec-index"></input>
+			</div>
+			<div class="control">Count:
+				<input type="text" value="10" size="4" id="rec-count" name="rec-count"></input>
+			</div>
+
 
 			<div class="control">
 				<input type="submit" value="Execute Query" title="Click to submit or hit Ctrl+Enter in input text area.">
@@ -116,6 +126,8 @@ $id("text-sql-id").addEventListener("keydown", function (event)
 }, false);
 
 $id("text-sql-id").focus();
+
+//console.log(window.location.href.toString());
 
 function logout()
 {
@@ -199,7 +211,8 @@ function ajaxPost (form, callback, direct_submit)
 		{
 			//Allow only elements that don't have the 'checked' property
 			//Or those who have it, and it's checked for them.
-			return typeof(el.checked) === 'undefined' || el.checked;
+			///return typeof(el.checked) === 'undefined' || el.checked;
+			return true;
 			//Practically, filter out checkboxes/radios which aren't checekd.
 		})
 		.filter(function(el) { return !!el.name; }) //Nameless elements die.
@@ -236,8 +249,11 @@ function submitForm(form)
 	form.action=form_action;
 
 	var output=$id("select-output-id");
+
 	if(output.value==0) //same page
 	{
+		//clear old output
+		///$id("output-inner-id").innerHTML='';
 		form.target="";
 		ajaxPost(form,submitCallback);
 	}
