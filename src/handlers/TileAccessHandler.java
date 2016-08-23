@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.OutputStream;
 
 import java.util.Properties;
+import java.util.Vector;
 
 //tb/160404
 
@@ -32,6 +33,9 @@ public class TileAccessHandler extends AbstractHandler
 
 	//===configurable parameters (here: default values)
 	public String tiles_root_uri="./tiles";
+
+	public Vector layers=new Vector(); //subdirectories of tiles_root_uri
+
 	public String dummy_image_uri=tiles_root_uri+"/dummy.png";
 	public boolean send_dummy_on_missing=true;
 	//===end configurable parameters
@@ -43,6 +47,11 @@ public class TileAccessHandler extends AbstractHandler
 		{
 			System.out.println("/!\\ could not load properties");
 		}
+
+		for(int i=0;i<layers.size();i++)
+		{
+			System.out.println("TileAccessHandler layer: "+layers.get(i));
+		}
 	}
 
 //========================================================================
@@ -53,8 +62,12 @@ public class TileAccessHandler extends AbstractHandler
 	{
 		String pathInfo = request.getPathInfo();
 		System.err.println("req "+pathInfo);
-		String tokens[]=pathInfo.split("/"); // "/z/x/y"
-		if(tokens.length!=4)
+//		String tokens[]=pathInfo.split("/"); // "/z/x/y"
+		//first token is layer
+		String tokens[]=pathInfo.split("/"); // "[layername]/z/x/y"
+
+//		if(tokens.length!=4)
+		if(tokens.length!=5)
 		{
 			System.err.println("invalid request");
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -65,13 +78,13 @@ public class TileAccessHandler extends AbstractHandler
 		//test if numbers
 		try
 		{
-			Integer.parseInt(tokens[1]);
 			Integer.parseInt(tokens[2]);
-			if(tokens[3].contains(".png"))
-			{
-				tokens[3]=tokens[3].substring(0,tokens[3].indexOf(".png"));
-			}
 			Integer.parseInt(tokens[3]);
+			if(tokens[4].contains(".png"))
+			{
+				tokens[4]=tokens[4].substring(0,tokens[4].indexOf(".png"));
+			}
+			Integer.parseInt(tokens[4]);
 		}
 		catch(Exception e)
 		{
@@ -81,14 +94,26 @@ public class TileAccessHandler extends AbstractHandler
 			return;
 		}
 
+		int layer_index=getLayerIndex(tokens[1]);
+		//test if layer exists in config
+		if(layer_index<0)
+		{
+			System.err.println("layer not found: "+tokens[1]);
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			baseRequest.setHandled(true);
+			return;
+		}
+
 		String image_uri
 			=tiles_root_uri
-			+File.separator
-			+tokens[1]
-			+File.separator
+				+File.separator
+			+layers.get(layer_index)
+				+File.separator
 			+tokens[2]
-			+File.separator
-			+tokens[2]+"_"+tokens[3]+".png";
+				+File.separator
+			+tokens[3]
+				+File.separator
+			+tokens[3]+"_"+tokens[4]+".png";
 
 		System.err.println("<- "+image_uri);
 
@@ -138,5 +163,20 @@ public class TileAccessHandler extends AbstractHandler
 
 		baseRequest.setHandled(true);
 	}//end handle()
+
+//========================================================================
+	private int getLayerIndex(String layer)
+	{
+		//using a hashmap would be better
+		for(int i=0;i<layers.size();i++)
+		{
+			if( ( (String)layers.get(i) ).equals(layer) )
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
 }//end class TileAccessHandler
 //EOF
