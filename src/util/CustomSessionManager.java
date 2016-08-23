@@ -584,7 +584,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 					//creating cookie containing hash as sessionid
 					//https://tomcat.apache.org/tomcat-5.5-doc/servletapi/javax/servlet/http/Cookie.html
 					sessionCookie = new Cookie("_csid",session_id);
-
+					sessionCookie.setPath("/");
 					sessionCookie.setSecure(true);
 
 					//store session in db
@@ -613,6 +613,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 		{
 			//unauthorized: csid invalid and no user & pw given
 			sessionCookie = new Cookie("_csid","__invalid");
+			sessionCookie.setPath("/");
 			sessionCookie.setMaxAge(0);
 			res.addCookie(sessionCookie);
 			close();
@@ -640,6 +641,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 			if(!session_id.equals(session.hash))
 			{
 				sessionCookie = new Cookie("_csid","__invalid");
+				sessionCookie.setPath("/");
 				sessionCookie.setMaxAge(0);
 				res.addCookie(sessionCookie);
 				close();
@@ -686,6 +688,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 			if(do_logout)
 			{
 				sessionCookie = new Cookie("_csid","__invalid");
+				sessionCookie.setPath("/");
 				sessionCookie.setMaxAge(0); ///
 				res.addCookie(sessionCookie);
 				close();
@@ -694,6 +697,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 			else
 			{
 				sessionCookie = new Cookie("_csid",session.hash);
+				sessionCookie.setPath("/");
 				sessionCookie.setMaxAge(cookie_lifetime_s); ///
 				res.addCookie(sessionCookie);
 				close();
