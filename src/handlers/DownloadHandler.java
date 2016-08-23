@@ -58,7 +58,7 @@ public class DownloadHandler extends AbstractHandler
 		boolean send_gzipped=false;
 
 		if(contentType.toLowerCase().startsWith("text")
-			|| contentType.toLowerCase().indexOf("javacript")>=0
+			|| contentType.toLowerCase().contains("javascript")
 		)
 		{
 			send_gzipped=true;
