@@ -51,7 +51,7 @@ fieldset
 </style>
 </head>
 <!-- ======================================================================= -->
-<body>
+<body onload="resetForm();">
 <input type="button" id="logout" name="logout" value="logout" onclick="logout();"/>
 <form id="sql_query_form" name="sql_query_form" action="/query" method="post" 
 	onsubmit="event.preventDefault(); submitForm(this);" accept-charset="utf-8">
@@ -77,6 +77,10 @@ fieldset
 					<option value="5">Text, gapless, enclosed</option>
 				</select>
 			</div>
+
+			<div class="control">
+				<input type="button" id="btn-reset-form-id" value="Reset Form" onclick="resetForm();"/>
+			</div>
 		</div>
 		<div style="clear: both;">
 
@@ -84,7 +88,7 @@ fieldset
 				<input type="textarea" value="0" size="4" id="from-rec-index" name="from-rec-index"></input>
 			</div>
 			<div class="control">Count:
-				<input type="text" value="10" size="4" id="rec-count" name="rec-count"></input>
+				<input type="text" value="-1" size="4" id="rec-count" name="rec-count"></input>
 			</div>
 
 
@@ -102,14 +106,25 @@ fieldset
 
 		<div style="clear: left;">
 			<legend>Input</legend>
-			<textarea id="text-sql-id" name="text-sql" rows="5" style="width: 100%;">SHOW TABLES;</textarea> 
+			<textarea id="text-sql-id" name="text-sql" rows="5" style="width: 100%;"></textarea> 
 		</div>
 	</fieldset>
 </form>
-<div id="output-inner-id" style="background: #f6f6f6;"></div>
+
+<div class="control" style="clear: left;">
+	<input type="button" id="btn-prev-page-id" value="  <  " onclick="prevPage();"/>
+</div>
+
+<div class="control">
+	<input type="button" id="btn-next-page-id" value="  >  " onclick="nextPage();"/>
+</div>
+
+<div id="output-inner-id" style="background: #f6f6f6; clear: left;"></div>
 <!-- ======================================================================= -->
 <script>
 form_action="https://localhost:9083/query";
+
+default_records_per_page=10;
 
 function $id(id)
 {
@@ -134,6 +149,69 @@ function logout()
 {
 	//hack. session will be invalidated
 	window.location="/?logout";
+}
+
+//=============================================================================
+function resetForm()
+{
+	$id("status-id").innerHTML="";
+	$id("wait-id").style.visibility="hidden";
+	$id("select-output-id").selectedIndex=0;
+	$id("select-format-id").selectedIndex=0;
+	$id("from-rec-index").value="0";
+	$id("rec-count").value="-1";
+	$id("text-sql-id").value="SHOW TABLES;";
+	$id("output-inner-id").innerHTML="";
+}
+
+//=============================================================================
+function prevPage()
+{
+	var current_index=parseInt($id("from-rec-index").value);
+	var step_size=parseInt($id("rec-count").value);
+	if(step_size>0)
+	{
+		current_index-=step_size;
+	}
+	else //-1: unlimited count from current index on
+	{
+		current_index-=default_records_per_page; //default
+	}
+
+	if(current_index<0)
+	{
+		current_index=0;
+	}
+	$id("from-rec-index").value=current_index;
+	if(step_size!=0)
+	{
+		submitForm($id("sql_query_form"));
+	}
+}
+
+//=============================================================================
+function nextPage()
+{
+	var current_index=parseInt($id("from-rec-index").value);
+	var step_size=parseInt($id("rec-count").value);
+	if(step_size>0)
+	{
+		current_index+=parseInt(step_size);
+	}
+	else //-1: unlimited count from current index on
+	{
+		current_index+=parseInt(default_records_per_page); //default
+	}
+
+	if(current_index<0)
+	{
+		current_index=0;
+	}
+	$id("from-rec-index").value=current_index;
+	if(step_size!=0)
+	{
+		submitForm($id("sql_query_form"));
+	}
 }
 
 /*
