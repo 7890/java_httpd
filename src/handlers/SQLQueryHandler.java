@@ -228,12 +228,13 @@ public class SQLQueryHandler extends AbstractHandler
 					//setting from/count values for html resultset formatter
 					html.from_record_index=from_rec;
 					html.record_count=rec_count;
-
 					html.formatRS(rs,osw);
 				}
 				else if(format.equals("2"))//html styled div table
 				{
 					response.setHeader("Content-Type", "text/html");
+					html_styled.from_record_index=from_rec;
+					html_styled.record_count=rec_count;
 					html_styled.formatRS(rs,osw);
 				}
 				else if(format.equals("3"))//csv
@@ -247,12 +248,16 @@ public class SQLQueryHandler extends AbstractHandler
 						response.setHeader("Content-Type", "text/plain");
 					}
 
+					csv.from_record_index=from_rec;
+					csv.record_count=rec_count;
 					csv.formatRS(rs,osw);
 				}
 
 				else if(format.equals("4"))//xml
 				{
 					response.setHeader("Content-Type", "text/xml");
+					xml.from_record_index=from_rec;
+					xml.record_count=rec_count;
 					xml.formatRS(rs,osw);
 				}
 
