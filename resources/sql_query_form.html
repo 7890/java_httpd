@@ -74,6 +74,7 @@ fieldset
 					<option value="2">HTML styled div table</option>
 					<option value="3">CSV (;)</option>
 					<option value="4">XML</option>
+					<option value="5">Text, gapless, enclosed</option>
 				</select>
 			</div>
 		</div>
@@ -177,18 +178,12 @@ function ajaxPost (form, callback, direct_submit)
 				{
 					var output=$id("select-output-id");
 					var format=$id("select-format-id");
-					if(output.value=="0" && (format.value=="0" || format.value=="3" || format.value=="4"))
+					//inline output
+					if(output.value=="0" && (format.value=="0" || format.value=="3" || format.value=="4" || format.value=="5") )
 					{
 						//wrap in <pre>
-
-						if(format.value=="4") //xml, escape
-						{
-							$id("output-inner-id").innerHTML='<pre>'+escapeString(xhr.response)+'</pre>';
-						}
-						else
-						{
-							$id("output-inner-id").innerHTML='<pre>'+xhr.response+'</pre>';
-						}
+						$id("output-inner-id").innerHTML='<pre>'+escapeString(xhr.response)+'</pre>';
+						///$id("output-inner-id").innerHTML='<pre>'+xhr.response+'</pre>';
 					}
 					else
 					{

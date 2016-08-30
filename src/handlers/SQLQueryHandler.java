@@ -56,6 +56,7 @@ public class SQLQueryHandler extends AbstractHandler
 	private HTMLRSFormatter html = new HTMLRSFormatter(true); ///
 	private HTMLStyledRSFormatter html_styled = new HTMLStyledRSFormatter(true); ///
 	private XMLRSFormatter xml = new XMLRSFormatter(true); ///
+	private PlainRSFormatter plain = new PlainRSFormatter(true); ///
 
 //========================================================================
 	public SQLQueryHandler()
@@ -184,6 +185,10 @@ public class SQLQueryHandler extends AbstractHandler
 				{
 					displayName+=".xml";
 				}
+				else if(format.equals("5"))//plain
+				{
+					displayName+=".txt";
+				}
 
 				String output=request.getParameter("select-output");
 				if(output==null)
@@ -250,6 +255,15 @@ public class SQLQueryHandler extends AbstractHandler
 					response.setHeader("Content-Type", "text/xml");
 					xml.formatRS(rs,osw);
 				}
+
+				else if(format.equals("5"))//plain text
+				{
+					response.setHeader("Content-Type", "text/plain");
+					plain.from_record_index=from_rec;
+					plain.record_count=rec_count;
+					plain.formatRS(rs,osw);
+				}
+
 				rs.close();
 				osw.close();
 				close();
