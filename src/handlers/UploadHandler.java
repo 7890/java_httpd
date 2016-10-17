@@ -151,7 +151,6 @@ public class UploadHandler extends AbstractHandler
 			System.err.println("got POST request");
 
 			response.setHeader("Access-Control-Allow-Origin", Access_Control_Allow_Origin);
-
 			String filename=request.getHeader("X_FILENAME");
 			if(filename==null)
 			{
@@ -190,6 +189,8 @@ public class UploadHandler extends AbstractHandler
 					//post upload hook
 					String result=post.postUploadProcess(new File(download_dir+File.separator+filename_store), filename);
 					System.out.println("hook return: "+result);
+					//using last line from post upload process output
+					random_id=result;
 				}
 				catch(Exception e)
 				{
