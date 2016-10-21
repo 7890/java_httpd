@@ -46,8 +46,14 @@ body
 	display: table-cell;
 /*///*/
 	max-width: 200;
+
 	display: flow;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+.cell-numeric
+{
+	text-align: right;
 }
