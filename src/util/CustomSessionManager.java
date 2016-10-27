@@ -90,6 +90,8 @@ public class CustomSessionManager implements interfaces.SessionManager
 
 	public int cookie_lifetime_s=60; //==client side session timeout
 
+	public String jdbc_impl_class="com.mckoi.JDBCDriver";
+
 	//connect to database using TCP
 	public String db_connection_url = "jdbc:mckoi://localhost";
 	//connect to database locally (file access)
@@ -153,7 +155,8 @@ public class CustomSessionManager implements interfaces.SessionManager
 	private void connectDb() throws Exception
 	{
 		//register the Mckoi JDBC driver. mckoidb.jar must be in classpath
-		Class.forName("com.mckoi.JDBCDriver").newInstance();
+		Class.forName(jdbc_impl_class).newInstance();
+
 		System.err.println("connecting to database...");
 		db_connection = DriverManager.getConnection(db_connection_url, db_username, db_password);
 
