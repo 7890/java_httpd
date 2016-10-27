@@ -21,6 +21,8 @@ public class FileDownload
 	private String propertiesFileUri="FileDownload.properties";
 
 	//===configurable parameters (here: default values)
+	public String jdbc_impl_class="com.mckoi.JDBCDriver";
+
 	//connect to database using TCP
 	public String db_connection_url = "jdbc:mckoi://localhost";
 	//connect to database locally (file access)
@@ -61,7 +63,7 @@ public class FileDownload
 	private void connectDb() throws Exception
 	{
 		//register the Mckoi JDBC driver. mckoidb.jar must be in classpath
-		Class.forName("com.mckoi.JDBCDriver").newInstance();
+		Class.forName(jdbc_impl_class).newInstance();
 		System.err.println("connecting to database...");
 		db_connection = DriverManager.getConnection(db_connection_url, db_username, db_password);
 		System.err.println("have database connection.");
