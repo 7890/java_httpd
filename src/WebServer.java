@@ -50,6 +50,9 @@ public class WebServer
 	public int use_ssl		=0;
 	public String keystore_uri	="resources/keystore";
 	public String keystore_pass	="123456";
+
+	//in bytes, default 10 mb, -1: unlimited
+	public String server_request_maxFormContentSize="10000000";
 	//===end configurable parameters
 
 	private ErrorHandler errorHandler;
@@ -184,6 +187,8 @@ public class WebServer
 					System.out.println("creating server on HTTPS port "+port);
 					server = getSslServer(port);
 				}
+				server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", server_request_maxFormContentSize);
+
 				handler_collection = new HandlerCollection();
 			}
 
@@ -229,6 +234,7 @@ public class WebServer
 						server.setHandler(context_handler);
 						///errorHandler.setServer(server);
 						server.addBean(errorHandler);
+						server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", server_request_maxFormContentSize);
 						server.start();
 						///server.join();
 						port++;
