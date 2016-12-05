@@ -372,8 +372,10 @@ public class CustomSessionManager implements interfaces.SessionManager
 			}
 			catch (Exception e)
 			{
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.err.println("/!\\ transaction failed, trying again");
 			}
+			try{Thread.sleep(20);}catch(Exception f){}
 		}
 
 		if(rs.next()){return rs.getInt(1);}else{return 0;}
