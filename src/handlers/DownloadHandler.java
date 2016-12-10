@@ -49,11 +49,16 @@ public class DownloadHandler extends AbstractHandler
 	}
 
 //========================================================================
-	private void sendFile(HttpServletResponse response, File f, String displayName, String contentType, boolean content_dispo, boolean inline) throws IOException
+	private void sendFile(HttpServletResponse response, File f, String displayName, String contentType, boolean content_dispo, boolean inline, boolean with_404) throws IOException
 	{
 		System.err.println("sending file "+f.getPath());
 
 		String dispo=(inline ? "inline" : "attachment");
+
+		if(with_404)
+		{
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND, "NOT FOUND");
+		}
 
 		boolean send_gzipped=false;
 
@@ -133,7 +138,7 @@ public class DownloadHandler extends AbstractHandler
 			String file_link=ruri.substring(1,ruri.length());
 			if(file_link==null)
 			{
-				sendFile(response, new File(not_found_file_uri), "", "text/html", false, false);
+				sendFile(response, new File(not_found_file_uri), "", "text/html", false, false, true);
 				baseRequest.setHandled(true);
 				return;
 			}
@@ -160,7 +165,7 @@ public class DownloadHandler extends AbstractHandler
 			FileLinkItem item=fd.ps_get_file_link_(file_link);
 			if(item==null)
 			{
-				sendFile(response, new File(not_found_file_uri), "", "text/html", false, false);
+				sendFile(response, new File(not_found_file_uri), "", "text/html", false, false, true);
 				try{fd.close();}catch(Exception e){e.printStackTrace();}
 				baseRequest.setHandled(true);
 				return;
@@ -170,11 +175,11 @@ public class DownloadHandler extends AbstractHandler
 			File f=new File(item.uri);
 			if(f.exists() && !f.isDirectory())
 			{
-				sendFile(response,f,item.displayname,item.mimetype,true,inline);
+				sendFile(response,f,item.displayname,item.mimetype,true,inline,false);
 			}
 			else
 			{
-				sendFile(response, new File(not_found_file_uri), "", "text/html", false, false);
+				sendFile(response, new File(not_found_file_uri), "", "text/html", false, false, true);
 				try{fd.close();}catch(Exception e){e.printStackTrace();}
 				baseRequest.setHandled(true);
 				return;
