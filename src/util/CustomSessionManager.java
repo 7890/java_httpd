@@ -190,7 +190,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 		);
 
 		ps_get_session_by_hash = db_connection.prepareStatement(
-			"SELECT id,id_user,hash,created,last_access,logout,session_expiration_duration_s,expires_in FROM v_session_current "
+			"SELECT id,id_user,hash,created,last_access,logout,expires_in FROM v_session_current "
 			+"WHERE hash = ?;"
 		);
 
