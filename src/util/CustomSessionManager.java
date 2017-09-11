@@ -88,7 +88,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 	*/
 	public String static_random="aa987r234hap8=)(/nfd9f87";
 
-	public int cookie_lifetime_s=60; //==client side session timeout
+	public int cookie_lifetime_s=60; //client side "session"/cookie timeout
 
 	public String jdbc_impl_class="com.mckoi.JDBCDriver";
 
@@ -102,6 +102,9 @@ public class CustomSessionManager implements interfaces.SessionManager
 
 	public String login_form_file_uri="./resources/login_form.html";
 	public String logout_redirect_file_uri="./resources/logout_redirect.html";
+
+	//artificially delay the response by 5 seconds
+	public int delay_unauthorized_ms=5000;
 	//===end configurable parameters
 
 	private MessageDigest md;
@@ -181,12 +184,13 @@ public class CustomSessionManager implements interfaces.SessionManager
 		);
 
 		ps_get_session = db_connection.prepareStatement(
-			"SELECT * FROM v_session_current "
+//			"SELECT * FROM v_session_current "
+			"SELECT id,id_user,hash,created,last_access,logout,expires_in FROM v_session_current "
 			+"WHERE id = ?;"
 		);
 
 		ps_get_session_by_hash = db_connection.prepareStatement(
-			"SELECT * FROM v_session_current "
+			"SELECT id,id_user,hash,created,last_access,logout,session_expiration_duration_s,expires_in FROM v_session_current "
 			+"WHERE hash = ?;"
 		);
 
@@ -198,12 +202,12 @@ public class CustomSessionManager implements interfaces.SessionManager
 		);
 
 		ps_get_user = db_connection.prepareStatement(
-			"SELECT * FROM v_user_condition "
+			"SELECT id,username,password_hash,id_condition,condition FROM v_user_condition "
 			+"WHERE id = ?;"
 		);
 
 		ps_get_user_by_login = db_connection.prepareStatement(
-			"SELECT * FROM v_user_condition "
+			"SELECT id,username,password_hash,id_condition,condition FROM v_user_condition "
 			+"WHERE username = ? and password_hash = ?;"
 		);
 
@@ -250,7 +254,6 @@ public class CustomSessionManager implements interfaces.SessionManager
 		ps_next_request_id.clearParameters();
 		ResultSet rs = ps_next_request_id.executeQuery();
 		db_connection.commit();
-
 		if(rs.next()){return rs.getInt(1);}else{throw new Exception("next_request_id: error");}
 	}
 
@@ -262,11 +265,12 @@ public class CustomSessionManager implements interfaces.SessionManager
 		,long last_access
 	) throws Exception
 	{
+		int index=1;
 		ps_insert_session.clearParameters();
-		ps_insert_session.setInt(1,id_user);
-		ps_insert_session.setString(2,hash);
-		ps_insert_session.setLong(3,created);
-		ps_insert_session.setLong(4,last_access);
+		ps_insert_session.setInt(index++,id_user);
+		ps_insert_session.setString(index++,hash);
+		ps_insert_session.setLong(index++,created);
+		ps_insert_session.setLong(index++,last_access);
 
 		ResultSet rs = ps_insert_session.executeQuery();
 		db_connection.commit();
@@ -295,24 +299,25 @@ public class CustomSessionManager implements interfaces.SessionManager
 		,String query_string
 	) throws Exception
 	{
+		int index=1;
 		ps_insert_request.clearParameters();
-		ps_insert_request.setInt(1,id);
-		ps_insert_request.setInt(2,id_user);
-		ps_insert_request.setString(3,protocol);
-		ps_insert_request.setString(4,scheme);
-		ps_insert_request.setString(5,remote_addr);
-		ps_insert_request.setString(6,remote_host);
-		ps_insert_request.setBoolean(7,is_secure);
-		ps_insert_request.setString(8,user_agent);
-		ps_insert_request.setString(9,server_name);
-		ps_insert_request.setInt(10,server_port);
-		ps_insert_request.setString(11,method);
-		ps_insert_request.setInt(12,content_length);
-		ps_insert_request.setString(13,content_type);
-		ps_insert_request.setString(14,uri);
-		ps_insert_request.setString(15,context_path);
-		ps_insert_request.setString(16,path_info);
-		ps_insert_request.setString(17,query_string);
+		ps_insert_request.setInt(index++,id);
+		ps_insert_request.setInt(index++,id_user);
+		ps_insert_request.setString(index++,protocol);
+		ps_insert_request.setString(index++,scheme);
+		ps_insert_request.setString(index++,remote_addr);
+		ps_insert_request.setString(index++,remote_host);
+		ps_insert_request.setBoolean(index++,is_secure);
+		ps_insert_request.setString(index++,user_agent);
+		ps_insert_request.setString(index++,server_name);
+		ps_insert_request.setInt(index++,server_port);
+		ps_insert_request.setString(index++,method);
+		ps_insert_request.setInt(index++,content_length);
+		ps_insert_request.setString(index++,content_type);
+		ps_insert_request.setString(index++,uri);
+		ps_insert_request.setString(index++,context_path);
+		ps_insert_request.setString(index++,path_info);
+		ps_insert_request.setString(index++,query_string);
 
 		ResultSet rs = ps_insert_request.executeQuery();
 		db_connection.commit();
@@ -347,18 +352,19 @@ public class CustomSessionManager implements interfaces.SessionManager
 		,boolean logout
 	) throws Exception
 	{
+		int index=1;
 		long nowMillis=DTime.nowMillis();
 		ps_update_session.clearParameters();
-		ps_update_session.setLong(1,nowMillis);
+		ps_update_session.setLong(index++,nowMillis);
 		if(logout)
 		{
-			ps_update_session.setLong(2,nowMillis);
+			ps_update_session.setLong(index++,nowMillis);
 		}
 		else
 		{
-			ps_update_session.setLong(2,0);
+			ps_update_session.setLong(index++,0);
 		}
-		ps_update_session.setInt(3,id_session);
+		ps_update_session.setInt(index++,id_session);
 
 		boolean committed = false;
 		ResultSet rs =null;
@@ -418,9 +424,10 @@ public class CustomSessionManager implements interfaces.SessionManager
 		,String password_hash
 	) throws Exception
 	{
+		int index=1;
 		ps_get_user_by_login.clearParameters();
-		ps_get_user_by_login.setString(1,username);
-		ps_get_user_by_login.setString(2,password_hash);
+		ps_get_user_by_login.setString(index++,username);
+		ps_get_user_by_login.setString(index++,password_hash);
 
 		ResultSet rs = ps_get_user_by_login.executeQuery();
 		db_connection.commit();
@@ -528,6 +535,8 @@ public class CustomSessionManager implements interfaces.SessionManager
 		//no cookie
 		if(_csid_test==null)
 		{
+			System.err.println("NO COOKIE");
+
 			//is there a session id given as param? (i.e. cookie origin issue, cross-domain)
 			_csid_test=req.getParameter("_csid");
 		}
@@ -567,6 +576,8 @@ public class CustomSessionManager implements interfaces.SessionManager
 				{
 					//unauthorized: no csid and invalid user and/or pw given
 					close();
+					System.err.println("DELAYING REPLY "+delay_unauthorized_ms);
+					try{Thread.sleep(delay_unauthorized_ms);}catch(Exception e){}
 					return 0;
 				}
 				else
@@ -705,6 +716,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 				sessionCookie.setPath("/");
 				sessionCookie.setMaxAge(cookie_lifetime_s); ///
 				res.addCookie(sessionCookie);
+				System.err.println("cookie lifetime set to "+cookie_lifetime_s+" sec");
 				close();
 				return 1;
 			}
