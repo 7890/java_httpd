@@ -66,7 +66,7 @@ session_id =
 
 test if session_id is valid before any database access must be made:
 
-	first_4(session_id) == first_4(hash(static_random + session_id_pure)?
+	first_4(session_id) == first_4(hash(static_random + session_id_pure))?
 
 if valid, a lookup in the db will tell if a session with that id does exist (and is not expired)
 if existing, the user holding that session is fetched to do further checks for authorization
@@ -523,6 +523,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 		{
 			for(Cookie cookie : cookies)
 			{
+				//use first found
 				if(cookie.getName().equals("_csid"))
 				{
 					sessionCookie=cookie;
@@ -583,7 +584,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 				else
 				{
 					//user exists
-					System.err.println(user);
+					System.err.println("user exists:\n"+user);
 
 					//create session id as hash
 					long nowMillis=DTime.nowMillis();
@@ -611,7 +612,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 			}//end username and pw no null
 		}//end have no cookie
 
-		//cookie /session id now (if not returned with login form already)
+		//have cookie / session id now (if not returned with login form already)
 
 		System.err.println("cookie _csid: "+_csid_test);
 
@@ -718,6 +719,7 @@ public class CustomSessionManager implements interfaces.SessionManager
 				res.addCookie(sessionCookie);
 				System.err.println("cookie lifetime set to "+cookie_lifetime_s+" sec");
 				close();
+				//all good
 				return 1;
 			}
 		}//end session not null
